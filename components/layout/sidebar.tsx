@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, BookOpen, CreditCard, MessageSquare,
   GraduationCap, FileText, PenLine, Mic, CalendarDays,
-  BarChart3, Trophy, Sparkles, ChevronLeft, Flame, Star, X,
+  Sparkles, ChevronLeft, Flame, Star, X, ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store";
@@ -15,10 +15,9 @@ import { db } from "@/lib/db";
 
 const NAV_ITEMS = [
   {
-    group: "Main",
+    group: "Overview",
     items: [
       { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-      { href: "/analytics", label: "Analytics", icon: BarChart3 },
     ],
   },
   {
@@ -26,7 +25,7 @@ const NAV_ITEMS = [
     items: [
       { href: "/vocabulary", label: "Vocabulary", icon: BookOpen },
       { href: "/flashcards", label: "Flashcards", icon: CreditCard },
-      { href: "/grammar", label: "Grammar Academy", icon: GraduationCap },
+      { href: "/grammar", label: "Grammar", icon: GraduationCap },
       { href: "/sentences", label: "Sentences", icon: MessageSquare },
     ],
   },
@@ -36,13 +35,13 @@ const NAV_ITEMS = [
       { href: "/reading", label: "Reading", icon: FileText },
       { href: "/writing", label: "Writing", icon: PenLine },
       { href: "/speaking", label: "Speaking", icon: Mic },
+      { href: "/exam", label: "Exam Mode", icon: ClipboardList },
     ],
   },
   {
-    group: "Plan",
+    group: "Tools",
     items: [
-      { href: "/planner", label: "Study Planner", icon: CalendarDays },
-      { href: "/achievements", label: "Achievements", icon: Trophy },
+      { href: "/planner", label: "Planner", icon: CalendarDays },
       { href: "/ai-tools", label: "AI Tools", icon: Sparkles },
     ],
   },
@@ -67,21 +66,16 @@ function NavContent({
 
   return (
     <>
-      {/* Profile XP bar */}
       {!collapsed && profile && (
         <div className="px-4 py-3 border-b border-sidebar-border">
           <div className="flex items-center justify-between mb-1.5">
             <div className="flex items-center gap-1.5">
               <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-              <span className="text-xs font-medium text-foreground">
-                Lv.{profile.level}
-              </span>
+              <span className="text-xs font-medium text-foreground">Lv.{profile.level}</span>
             </div>
             <div className="flex items-center gap-1">
               <Flame className="w-3 h-3 text-orange-400 fill-orange-400" />
-              <span className="text-xs font-semibold text-orange-400">
-                {profile.streak}d
-              </span>
+              <span className="text-xs font-semibold text-orange-400">{profile.streak}d</span>
             </div>
           </div>
           <div className="h-1.5 rounded-full bg-muted overflow-hidden">
@@ -89,7 +83,7 @@ function NavContent({
               className="h-full rounded-full bg-primary"
               initial={{ width: 0 }}
               animate={{ width: `${xpProgress}%` }}
-              transition={{ duration: 0.8, ease: "easeOut" }}
+              transition={{ duration: 0.8 }}
             />
           </div>
           <div className="flex justify-between mt-1">
@@ -99,8 +93,7 @@ function NavContent({
         </div>
       )}
 
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-4">
+      <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-3">
         {NAV_ITEMS.map((group) => (
           <div key={group.group}>
             {!collapsed && (
@@ -126,15 +119,11 @@ function NavContent({
                     >
                       <Icon
                         className={cn(
-                          "w-4 h-4 shrink-0 transition-colors",
-                          isActive
-                            ? "text-primary"
-                            : "text-muted-foreground group-hover:text-foreground"
+                          "w-4 h-4 shrink-0",
+                          isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
                         )}
                       />
-                      {!collapsed && (
-                        <span className="truncate">{label}</span>
-                      )}
+                      {!collapsed && <span className="truncate">{label}</span>}
                     </Link>
                   </li>
                 );
@@ -144,12 +133,11 @@ function NavContent({
         ))}
       </nav>
 
-      {/* Today XP */}
-      {!collapsed && todayStats && (
+      {!collapsed && todayStats && todayStats.xpEarned > 0 && (
         <div className="px-4 py-3 border-t border-sidebar-border">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Today&apos;s XP</span>
-            <span className="font-semibold text-primary">+{todayStats.xpEarned}</span>
+            <span className="text-muted-foreground">Today</span>
+            <span className="font-semibold text-primary">+{todayStats.xpEarned} XP</span>
           </div>
         </div>
       )}
@@ -157,20 +145,18 @@ function NavContent({
   );
 }
 
-/* ── Desktop Sidebar ── */
 export function DesktopSidebar() {
   const { sidebarCollapsed, toggleSidebar } = useAppStore();
 
   return (
     <motion.aside
       initial={false}
-      animate={{ width: sidebarCollapsed ? 64 : 240 }}
-      transition={{ duration: 0.2, ease: "easeInOut" }}
+      animate={{ width: sidebarCollapsed ? 64 : 220 }}
+      transition={{ duration: 0.2 }}
       className="hidden lg:flex flex-col h-screen bg-sidebar border-r border-sidebar-border overflow-hidden shrink-0"
     >
-      {/* Logo */}
       <div className="flex items-center gap-3 px-4 h-14 border-b border-sidebar-border shrink-0">
-        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground font-bold text-sm shrink-0">
+        <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary text-primary-foreground font-bold text-xs shrink-0">
           E
         </div>
         <AnimatePresence>
@@ -182,8 +168,8 @@ export function DesktopSidebar() {
               transition={{ duration: 0.15 }}
               className="flex flex-col min-w-0"
             >
-              <span className="text-sm font-semibold text-foreground truncate">English Hub</span>
-              <span className="text-[10px] text-muted-foreground">Learning Dashboard</span>
+              <span className="text-sm font-semibold text-foreground">English Hub</span>
+              <span className="text-[10px] text-muted-foreground">Personal Study</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -193,30 +179,20 @@ export function DesktopSidebar() {
             "ml-auto p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-all",
             sidebarCollapsed && "rotate-180"
           )}
-          title="Toggle sidebar"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
       </div>
-
       <NavContent collapsed={sidebarCollapsed} />
     </motion.aside>
   );
 }
 
-/* ── Mobile Drawer Sidebar ── */
-export function MobileSidebar({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
+export function MobileSidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
     <AnimatePresence>
       {open && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -225,32 +201,25 @@ export function MobileSidebar({
             className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
             onClick={onClose}
           />
-
-          {/* Drawer */}
           <motion.aside
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            className="fixed inset-y-0 left-0 z-50 w-72 flex flex-col bg-sidebar border-r border-sidebar-border lg:hidden"
+            transition={{ duration: 0.25 }}
+            className="fixed inset-y-0 left-0 z-50 w-64 flex flex-col bg-sidebar border-r border-sidebar-border lg:hidden"
           >
-            {/* Header */}
             <div className="flex items-center gap-3 px-4 h-14 border-b border-sidebar-border shrink-0">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground font-bold text-sm shrink-0">
+              <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary text-primary-foreground font-bold text-xs shrink-0">
                 E
               </div>
               <div className="flex flex-col min-w-0 flex-1">
-                <span className="text-sm font-semibold text-foreground truncate">English Hub</span>
-                <span className="text-[10px] text-muted-foreground">Learning Dashboard</span>
+                <span className="text-sm font-semibold text-foreground">English Hub</span>
+                <span className="text-[10px] text-muted-foreground">Personal Study</span>
               </div>
-              <button
-                onClick={onClose}
-                className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-all"
-              >
+              <button onClick={onClose} className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent">
                 <X className="w-4 h-4" />
               </button>
             </div>
-
             <NavContent onLinkClick={onClose} />
           </motion.aside>
         </>
@@ -259,7 +228,6 @@ export function MobileSidebar({
   );
 }
 
-/* ── Legacy export for backwards compat ── */
 export function Sidebar() {
   return <DesktopSidebar />;
 }
