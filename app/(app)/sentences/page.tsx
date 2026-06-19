@@ -146,8 +146,8 @@ export default function SentencesPage() {
   return (
     <div>
       <Header
-        title="Common Sentences"
-        subtitle={`${totalCount ?? 0} useful sentences in your library`}
+        title="Sentences"
+        subtitle={`${totalCount ?? 0} جمله ذخیره شده`}
       />
 
       <div className="p-6 space-y-5 max-w-5xl mx-auto">
@@ -156,7 +156,7 @@ export default function SentencesPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search sentences..."
+              placeholder="جستجو در جملات... / Search EN or FA"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"

@@ -60,7 +60,7 @@ export function Header({ title, subtitle }: HeaderProps) {
           className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-muted/50 text-muted-foreground text-xs hover:bg-muted transition-colors"
         >
           <Search className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Search...</span>
+          <span className="hidden sm:inline">جستجو...</span>
           <kbd className="hidden md:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] bg-muted border border-border font-mono">
             ⌘K
           </kbd>

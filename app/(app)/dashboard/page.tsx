@@ -129,13 +129,13 @@ export default function DashboardPage() {
 
   const greetingHour = new Date().getHours();
   const greeting =
-    greetingHour < 12 ? "Good morning" : greetingHour < 18 ? "Good afternoon" : "Good evening";
+    greetingHour < 12 ? "صبح بخیر" : greetingHour < 18 ? "ظهر بخیر" : "عصر بخیر";
 
   return (
     <div>
       <Header
         title="Dashboard"
-        subtitle={`${greeting}, ${profile?.name ?? "Learner"} 👋`}
+        subtitle={`${greeting}، ${profile?.name ?? "زبان‌آموز"} 👋`}
       />
 
       <div className="p-6 space-y-6 max-w-6xl mx-auto">
@@ -155,7 +155,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <p className="text-3xl font-bold text-foreground">{profile?.streak ?? 0}</p>
-                <p className="text-sm text-muted-foreground">Day Streak</p>
+                <p className="text-sm text-muted-foreground">روز پیاپی</p>
               </div>
             </div>
 
@@ -167,7 +167,7 @@ export default function DashboardPage() {
                 <Star className="w-7 h-7 text-primary fill-primary" />
               </div>
               <div>
-                <p className="text-3xl font-bold text-foreground">Lv. {profile?.level ?? 1}</p>
+                <p className="text-3xl font-bold text-foreground">سطح {profile?.level ?? 1}</p>
                 <p className="text-sm text-muted-foreground">
                   {profile?.xp ?? 0} / {xpForNextLevel} XP
                 </p>
@@ -179,7 +179,7 @@ export default function DashboardPage() {
             {/* XP Progress */}
             <div className="flex-1">
               <div className="flex justify-between text-xs text-muted-foreground mb-2">
-                <span>Progress to Level {(profile?.level ?? 1) + 1}</span>
+                <span>تا سطح {(profile?.level ?? 1) + 1}</span>
                 <span>{Math.round(xpProgress)}%</span>
               </div>
               <div className="h-3 rounded-full bg-muted overflow-hidden">
@@ -191,7 +191,7 @@ export default function DashboardPage() {
                 />
               </div>
               <p className="text-xs text-muted-foreground mt-1.5">
-                {xpForNextLevel - (profile?.xp ?? 0)} XP to next level
+                {xpForNextLevel - (profile?.xp ?? 0)} XP تا سطح بعدی
               </p>
             </div>
           </div>
@@ -200,7 +200,7 @@ export default function DashboardPage() {
         {/* Today's Stats */}
         <div>
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            Today&apos;s Progress
+            پیشرفت امروز
           </h2>
           <motion.div
             variants={container}
@@ -210,38 +210,38 @@ export default function DashboardPage() {
           >
             <StatCard
               icon={BookOpen}
-              label="Words Learned"
+              label="کلمات یادگرفته"
               value={todayStats?.wordsLearned ?? 0}
               color="bg-blue-500/15 text-blue-400"
             />
             <StatCard
               icon={CreditCard}
-              label="Flashcards"
+              label="فلش‌کارت"
               value={todayStats?.flashcardsReviewed ?? 0}
               color="bg-purple-500/15 text-purple-400"
             />
             <StatCard
               icon={GraduationCap}
-              label="Grammar"
+              label="گرامر"
               value={todayStats?.grammarLessonsCompleted ?? 0}
               color="bg-green-500/15 text-green-400"
             />
             <StatCard
               icon={Clock}
-              label="Reading"
+              label="خواندن"
               value={todayStats?.readingMinutes ?? 0}
-              suffix="min"
+              suffix="دقیقه"
               color="bg-yellow-500/15 text-yellow-400"
             />
             <StatCard
               icon={Zap}
-              label="XP Earned"
+              label="XP کسب‌شده"
               value={todayStats?.xpEarned ?? 0}
               color="bg-orange-500/15 text-orange-400"
             />
             <StatCard
               icon={Target}
-              label="Due Cards"
+              label="کارت موعددار"
               value={dueFlashcards ?? 0}
               color="bg-red-500/15 text-red-400"
             />
@@ -257,7 +257,7 @@ export default function DashboardPage() {
             className="lg:col-span-2 rounded-xl border border-border bg-card p-5"
           >
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-semibold text-foreground">Weekly Activity</h3>
+              <h3 className="font-semibold text-foreground">فعالیت هفتگی</h3>
               <TrendingUp className="w-4 h-4 text-muted-foreground" />
             </div>
             <div className="flex items-end gap-2 h-28">
@@ -286,17 +286,17 @@ export default function DashboardPage() {
             transition={{ delay: 0.25 }}
             className="rounded-xl border border-border bg-card p-5 space-y-4"
           >
-            <h3 className="font-semibold text-foreground">All Time</h3>
+            <h3 className="font-semibold text-foreground">کل دوران</h3>
             {[
-              { label: "Total Words", value: totalWords ?? 0, icon: BookOpen, color: "text-blue-400" },
-              { label: "Flashcards", value: totalFlashcards ?? 0, icon: CreditCard, color: "text-purple-400" },
+              { label: "کل کلمات", value: totalWords ?? 0, icon: BookOpen, color: "text-blue-400" },
+              { label: "فلش‌کارت", value: totalFlashcards ?? 0, icon: CreditCard, color: "text-purple-400" },
               {
-                label: "Grammar Done",
+                label: "گرامر انجام‌شده",
                 value: `${grammarCompleted ?? 0}/${grammarTotal ?? 0}`,
                 icon: GraduationCap,
                 color: "text-green-400",
               },
-              { label: "Total XP", value: profile?.totalXp ?? 0, icon: Trophy, color: "text-yellow-400" },
+              { label: "کل XP", value: profile?.totalXp ?? 0, icon: Trophy, color: "text-yellow-400" },
             ].map(({ label, value, icon: Icon, color }) => (
               <div key={label} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -312,7 +312,7 @@ export default function DashboardPage() {
         {/* Quick Actions */}
         <div>
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            Quick Actions
+            دسترسی سریع
           </h2>
           <motion.div
             variants={container}
@@ -323,43 +323,43 @@ export default function DashboardPage() {
             <QuickAction
               href="/vocabulary"
               icon={Plus}
-              label="Add New Word"
-              description="Expand your vocabulary"
+              label="افزودن کلمه جدید"
+              description="واژگانت رو گسترش بده"
               color="bg-blue-500/15 text-blue-400"
             />
             <QuickAction
               href="/flashcards"
               icon={CreditCard}
-              label={`Review Flashcards (${dueFlashcards ?? 0} due)`}
-              description="Spaced repetition practice"
+              label={`مرور فلش‌کارت (${dueFlashcards ?? 0} موعددار)`}
+              description="تمرین با تکرار فاصله‌دار"
               color="bg-purple-500/15 text-purple-400"
             />
             <QuickAction
               href="/grammar"
               icon={GraduationCap}
-              label="Study Grammar"
-              description="Learn grammar rules"
+              label="مطالعه گرامر"
+              description="یادگیری قواعد گرامری"
               color="bg-green-500/15 text-green-400"
             />
             <QuickAction
               href="/writing"
               icon={CreditCard}
-              label="Daily Journal"
-              description="Write your thoughts in English"
+              label="دفترچه روزانه"
+              description="افکارت رو به انگلیسی بنویس"
               color="bg-yellow-500/15 text-yellow-400"
             />
             <QuickAction
               href="/speaking"
               icon={Flame}
-              label="Speaking Practice"
-              description="Random prompts to speak"
+              label="تمرین مکالمه"
+              description="موضوع‌های تصادفی برای صحبت"
               color="bg-orange-500/15 text-orange-400"
             />
             <QuickAction
               href="/ai-tools"
               icon={Zap}
-              label="AI Tools"
-              description="Grammar checker, sentence explainer"
+              label="ابزارهای هوش مصنوعی"
+              description="بررسی گرامر، توضیح جمله"
               color="bg-pink-500/15 text-pink-400"
             />
           </motion.div>
@@ -374,9 +374,9 @@ export default function DashboardPage() {
             className="rounded-xl border border-border bg-card p-5"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-foreground">Recent Words</h3>
+              <h3 className="font-semibold text-foreground">کلمات اخیر</h3>
               <Link href="/vocabulary" className="text-xs text-primary hover:underline">
-                View all
+                مشاهده همه
               </Link>
             </div>
             <div className="space-y-2">
@@ -394,7 +394,7 @@ export default function DashboardPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground truncate max-w-32">
+                    <span className="text-xs text-muted-foreground truncate max-w-32 fa">
                       {word.meaning}
                     </span>
                     <span

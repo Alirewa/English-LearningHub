@@ -34,8 +34,8 @@ function Command({
 }
 
 function CommandDialog({
-  title = "Command Palette",
-  description = "Search for a command to run...",
+  title = "جستجو",
+  description = "صفحات، کلمات و جملات رو جستجو کن",
   children,
   className,
   showCloseButton = false,

@@ -38,9 +38,9 @@ function FlashCard({
             style={{ backfaceVisibility: "hidden" }}
             className="absolute inset-0 rounded-2xl border border-border bg-card flex flex-col items-center justify-center p-8 text-center"
           >
-            <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wider">Word</p>
+            <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wider">کلمه</p>
             <h2 className="text-3xl font-bold text-foreground">{front}</h2>
-            <p className="text-sm text-muted-foreground mt-4">Tap to reveal meaning</p>
+            <p className="text-sm text-muted-foreground mt-4">برای دیدن معنی بزن</p>
           </div>
 
           {/* Back */}
@@ -48,8 +48,8 @@ function FlashCard({
             style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
             className="absolute inset-0 rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/5 to-card flex flex-col items-center justify-center p-8 text-center"
           >
-            <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wider">Meaning</p>
-            <h2 className="text-xl font-semibold text-foreground">{back}</h2>
+            <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wider">معنی</p>
+            <h2 className="text-xl font-semibold text-foreground fa">{back}</h2>
           </div>
         </motion.div>
       </div>
@@ -61,7 +61,7 @@ function FlashCard({
           animate={{ opacity: 1 }}
           className="text-xs text-muted-foreground"
         >
-          Click the card to flip it
+          روی کارت بزن تا برگرده
         </motion.p>
       )}
 
@@ -80,7 +80,7 @@ function FlashCard({
               className="flex-1 border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50 gap-2"
             >
               <AlertCircle className="w-4 h-4" />
-              Hard
+              سخت
             </Button>
             <Button
               onClick={() => onRate("medium")}
@@ -88,7 +88,7 @@ function FlashCard({
               className="flex-1 border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10 hover:border-yellow-500/50 gap-2"
             >
               <RotateCcw className="w-4 h-4" />
-              Medium
+              متوسط
             </Button>
             <Button
               onClick={() => onRate("easy")}
@@ -96,7 +96,7 @@ function FlashCard({
               className="flex-1 border-green-500/30 text-green-400 hover:bg-green-500/10 hover:border-green-500/50 gap-2"
             >
               <CheckCircle2 className="w-4 h-4" />
-              Easy
+              آسان
             </Button>
           </motion.div>
         )}
@@ -180,7 +180,7 @@ export default function FlashcardsPage() {
         flashcardsReviewed: sessionCards.length,
         xpEarned: sessionCards.length * XP_REWARDS.flashcardReviewed,
       });
-      toast.success(`Session complete! +${sessionCards.length * XP_REWARDS.flashcardReviewed} XP`);
+      toast.success(`جلسه تمام شد! +${sessionCards.length * XP_REWARDS.flashcardReviewed} XP`);
     } else {
       setCurrentIdx(currentIdx + 1);
     }
@@ -196,13 +196,13 @@ export default function FlashcardsPage() {
 
     return (
       <div>
-        <Header title="Flashcard Review" />
+        <Header title="مرور فلش‌کارت" />
         <div className="p-6 max-w-2xl mx-auto">
           {/* Progress */}
           <div className="mb-8">
             <div className="flex justify-between text-sm text-muted-foreground mb-2">
               <span>{currentIdx + 1} / {sessionCards.length}</span>
-              <span>{Math.round(progress)}% done</span>
+              <span>{Math.round(progress)}% انجام شد</span>
             </div>
             <div className="h-2 rounded-full bg-muted overflow-hidden">
               <motion.div
@@ -233,7 +233,7 @@ export default function FlashcardsPage() {
               setSessionDone(false);
             }}
           >
-            End session
+            پایان جلسه
           </Button>
         </div>
       </div>
@@ -243,7 +243,7 @@ export default function FlashcardsPage() {
   if (sessionDone) {
     return (
       <div>
-        <Header title="Session Complete!" />
+        <Header title="جلسه تمام شد!" />
         <div className="p-6 max-w-lg mx-auto text-center">
           <motion.div
             initial={{ scale: 0 }}
@@ -254,23 +254,23 @@ export default function FlashcardsPage() {
             <Trophy className="w-10 h-10 text-primary" />
           </motion.div>
 
-          <h2 className="text-2xl font-bold text-foreground mb-2">Great job!</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-2">آفرین!</h2>
           <p className="text-muted-foreground mb-8">
-            You reviewed {sessionCards.length} cards
+            {sessionCards.length} کارت مرور کردی
           </p>
 
           <div className="grid grid-cols-3 gap-4 mb-8">
             <div className="rounded-xl border border-green-500/20 bg-green-500/10 p-4">
               <p className="text-2xl font-bold text-green-400">{easyCount}</p>
-              <p className="text-xs text-green-400/70 mt-1">Easy</p>
+              <p className="text-xs text-green-400/70 mt-1">آسان</p>
             </div>
             <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-4">
               <p className="text-2xl font-bold text-yellow-400">{mediumCount}</p>
-              <p className="text-xs text-yellow-400/70 mt-1">Medium</p>
+              <p className="text-xs text-yellow-400/70 mt-1">متوسط</p>
             </div>
             <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4">
               <p className="text-2xl font-bold text-red-400">{hardCount}</p>
-              <p className="text-xs text-red-400/70 mt-1">Hard</p>
+              <p className="text-xs text-red-400/70 mt-1">سخت</p>
             </div>
           </div>
 
@@ -280,11 +280,11 @@ export default function FlashcardsPage() {
               className="flex-1"
               onClick={() => setSessionActive(false)}
             >
-              Back to overview
+              بازگشت
             </Button>
             {(dueCards?.length ?? 0) > 0 && (
               <Button className="flex-1" onClick={startDueSession}>
-                Review more
+                مرور بیشتر
               </Button>
             )}
           </div>
@@ -297,7 +297,7 @@ export default function FlashcardsPage() {
     <div>
       <Header
         title="Flashcards"
-        subtitle={`${totalCards ?? 0} cards · ${dueCards?.length ?? 0} due today`}
+        subtitle={`${totalCards ?? 0} کارت · ${dueCards?.length ?? 0} برای امروز`}
       />
 
       <div className="p-6 space-y-6 max-w-4xl mx-auto">
@@ -305,32 +305,32 @@ export default function FlashcardsPage() {
         <div className="grid grid-cols-3 gap-4">
           <div className="rounded-xl border border-border bg-card p-4 text-center">
             <p className="text-2xl font-bold text-foreground">{totalCards ?? 0}</p>
-            <p className="text-xs text-muted-foreground mt-1">Total Cards</p>
+            <p className="text-xs text-muted-foreground mt-1">کل کارت‌ها</p>
           </div>
           <div className="rounded-xl border border-orange-500/20 bg-orange-500/5 p-4 text-center">
             <p className="text-2xl font-bold text-orange-400">{dueCards?.length ?? 0}</p>
-            <p className="text-xs text-muted-foreground mt-1">Due Today</p>
+            <p className="text-xs text-muted-foreground mt-1">برای امروز</p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 text-center">
             <p className="text-2xl font-bold text-foreground">
               {(totalCards ?? 0) - (dueCards?.length ?? 0)}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">Learned</p>
+            <p className="text-xs text-muted-foreground mt-1">یاد گرفته‌شده</p>
           </div>
         </div>
 
         {/* Session Start */}
         <div className="rounded-2xl border border-border bg-card p-6">
-          <h3 className="font-semibold text-foreground mb-1">Start a Study Session</h3>
-          <p className="text-sm text-muted-foreground mb-5">
-            Practice your flashcards with spaced repetition
+          <h3 className="font-semibold text-foreground mb-1">شروع جلسه مطالعه</h3>
+          <p className="text-sm text-muted-foreground mb-5 fa">
+            با تکرار فاصله‌دار فلش‌کارت‌هات رو تمرین کن
           </p>
 
           {totalCards === 0 ? (
             <div className="text-center py-8">
               <CreditCard className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">
-                Add vocabulary words to create flashcards automatically
+              <p className="text-sm text-muted-foreground fa">
+                کلمه اضافه کن تا فلش‌کارت خودکار ساخته بشه
               </p>
             </div>
           ) : (
@@ -341,7 +341,7 @@ export default function FlashcardsPage() {
                 className="flex-1 gap-2"
               >
                 <Zap className="w-4 h-4" />
-                Review Due Cards ({dueCards?.length ?? 0})
+                مرور کارت‌های امروز ({dueCards?.length ?? 0})
               </Button>
               <Button
                 onClick={startAllSession}
@@ -350,7 +350,7 @@ export default function FlashcardsPage() {
                 className="flex-1 gap-2"
               >
                 <BookOpen className="w-4 h-4" />
-                Practice All Cards
+                تمرین همه کارت‌ها
               </Button>
             </div>
           )}
@@ -359,7 +359,7 @@ export default function FlashcardsPage() {
         {/* Card List */}
         {allCards && allCards.length > 0 && (
           <div className="rounded-xl border border-border bg-card p-5">
-            <h3 className="font-semibold text-foreground mb-4">Recent Flashcards</h3>
+            <h3 className="font-semibold text-foreground mb-4">فلش‌کارت‌های اخیر</h3>
             <div className="space-y-2">
               {allCards.map((card) => (
                 <div
@@ -369,7 +369,7 @@ export default function FlashcardsPage() {
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="font-medium text-sm text-foreground truncate">{card.front}</span>
                     <span className="text-muted-foreground text-sm">→</span>
-                    <span className="text-sm text-muted-foreground truncate">{card.back}</span>
+                    <span className="text-sm text-muted-foreground truncate fa">{card.back}</span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {card.difficulty && (
@@ -386,7 +386,7 @@ export default function FlashcardsPage() {
                       </span>
                     )}
                     <span className="text-[10px] text-muted-foreground">
-                      {new Date(card.nextReviewDate) <= new Date() ? "Due" : `In ${card.interval}d`}
+                      {new Date(card.nextReviewDate) <= new Date() ? "موعد" : `${card.interval} روز دیگه`}
                     </span>
                   </div>
                 </div>

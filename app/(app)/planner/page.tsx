@@ -15,7 +15,16 @@ import { Plus, CalendarDays, CheckCircle2, Circle, Trash2, BookOpen, CreditCard,
 import { toast } from "sonner";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const DAYS_FA = ["یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنج‌شنبه", "جمعه", "شنبه"];
 const TASK_TYPES = ["vocabulary", "grammar", "reading", "writing", "speaking", "flashcards"] as const;
+const TASK_LABELS_FA: Record<string, string> = {
+  vocabulary: "واژگان",
+  grammar: "گرامر",
+  reading: "خواندن",
+  writing: "نوشتن",
+  speaking: "صحبت",
+  flashcards: "فلش‌کارت",
+};
 
 const TASK_ICONS: Record<string, React.ElementType> = {
   vocabulary: BookOpen,
@@ -60,7 +69,7 @@ function PlanCard({ plan, onDelete }: { plan: StudyPlan; onDelete: (id: number) 
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-semibold text-foreground">{plan.name}</h3>
-          <p className="text-xs text-muted-foreground">{DAYS[plan.dayOfWeek]}</p>
+          <p className="text-xs text-muted-foreground">{DAYS_FA[plan.dayOfWeek]}</p>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">{completed}/{total}</span>
@@ -148,7 +157,7 @@ export default function PlannerPage() {
 
   const handleSave = async () => {
     if (!planName.trim() || tasks.length === 0) {
-      toast.error("Plan name and at least one task required");
+      toast.error("نام برنامه و حداقل یک تسک لازم است");
       return;
     }
     setSaving(true);
@@ -160,12 +169,12 @@ export default function PlannerPage() {
         isActive: true,
         createdAt: new Date(),
       });
-      toast.success("Study plan created!");
+      toast.success("برنامه مطالعه ساخته شد!");
       setPlanName("");
       setTasks([]);
       setDialogOpen(false);
     } catch {
-      toast.error("Failed to save plan");
+      toast.error("ذخیره برنامه ناموفق بود");
     } finally {
       setSaving(false);
     }
@@ -173,18 +182,18 @@ export default function PlannerPage() {
 
   const handleDelete = async (id: number) => {
     await db.studyPlans.delete(id);
-    toast.success("Plan deleted");
+    toast.success("برنامه حذف شد");
   };
 
   return (
     <div>
-      <Header title="Study Planner" subtitle="Plan your weekly English learning schedule" />
+      <Header title="Planner" subtitle="برنامه هفتگی یادگیری انگلیسیت رو بچین" />
 
       <div className="p-6 space-y-6 max-w-4xl mx-auto">
         <div className="flex justify-end">
           <Button onClick={() => setDialogOpen(true)} className="gap-2">
             <Plus className="w-4 h-4" />
-            New Plan
+            برنامه جدید
           </Button>
         </div>
 
@@ -192,7 +201,7 @@ export default function PlannerPage() {
         {todayPlans && todayPlans.length > 0 && (
           <div>
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-              Today ({DAYS[todayDayOfWeek]})
+              امروز ({DAYS_FA[todayDayOfWeek]})
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <AnimatePresence>
@@ -211,7 +220,7 @@ export default function PlannerPage() {
           return (
             <div key={day}>
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                {day}
+                {DAYS_FA[dayIdx]}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <AnimatePresence>
@@ -227,13 +236,13 @@ export default function PlannerPage() {
         {plans?.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <CalendarDays className="w-12 h-12 text-muted-foreground/40 mb-4" />
-            <h3 className="text-base font-medium text-foreground mb-1">No study plans yet</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Create a weekly study schedule to stay on track
+            <h3 className="text-base font-medium text-foreground mb-1">هنوز برنامه‌ای نداری</h3>
+            <p className="text-sm text-muted-foreground mb-4 fa">
+              یه برنامه هفتگی بساز تا منظم پیش بری
             </p>
             <Button onClick={() => setDialogOpen(true)} className="gap-2">
               <Plus className="w-4 h-4" />
-              Create First Plan
+              اولین برنامه
             </Button>
           </div>
         )}
@@ -242,26 +251,26 @@ export default function PlannerPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Create Study Plan</DialogTitle>
+            <DialogTitle>ساخت برنامه مطالعه</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-foreground">Plan Name</label>
+              <label className="text-xs font-medium text-foreground">نام برنامه</label>
               <Input
-                placeholder="e.g. Morning Study Session"
+                placeholder="مثلاً: جلسه مطالعه صبحگاهی"
                 value={planName}
                 onChange={(e) => setPlanName(e.target.value)}
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-foreground">Day of Week</label>
+              <label className="text-xs font-medium text-foreground">روز هفته</label>
               <Select value={dayOfWeek} onValueChange={(v) => setDayOfWeek(v ?? "1")}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {DAYS.map((day, i) => (
-                    <SelectItem key={day} value={String(i)}>{day}</SelectItem>
+                    <SelectItem key={day} value={String(i)}>{DAYS_FA[i]}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -269,7 +278,7 @@ export default function PlannerPage() {
 
             {/* Add Task */}
             <div className="space-y-2">
-              <label className="text-xs font-medium text-foreground">Tasks</label>
+              <label className="text-xs font-medium text-foreground">تسک‌ها</label>
               <div className="flex gap-2">
                 <Select value={newTaskType} onValueChange={(v) => v && setNewTaskType(v as TaskType)}>
                   <SelectTrigger className="w-36">
@@ -277,12 +286,12 @@ export default function PlannerPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {TASK_TYPES.map((t) => (
-                      <SelectItem key={t} value={t}>{t}</SelectItem>
+                      <SelectItem key={t} value={t}>{TASK_LABELS_FA[t]}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 <Input
-                  placeholder="Task description..."
+                  placeholder="شرح تسک..."
                   value={newTaskDesc}
                   onChange={(e) => setNewTaskDesc(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addTask()}
@@ -311,9 +320,9 @@ export default function PlannerPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>انصراف</Button>
             <Button onClick={handleSave} disabled={saving}>
-              {saving ? "Saving..." : "Create Plan"}
+              {saving ? "در حال ذخیره..." : "ساخت برنامه"}
             </Button>
           </DialogFooter>
         </DialogContent>

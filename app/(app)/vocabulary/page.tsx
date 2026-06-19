@@ -134,8 +134,14 @@ export default function VocabularyPage() {
       if (showFavs && !w.isFavorite) return false;
       if (filterDiff !== "all" && w.difficulty !== filterDiff) return false;
       if (search) {
-        const s = search.toLowerCase();
-        return w.word.toLowerCase().includes(s) || w.meaning.toLowerCase().includes(s);
+        const q = search.toLowerCase();
+        const inWord     = w.word.toLowerCase().includes(q);
+        const inMeaning  = w.meaning.toLowerCase().includes(q) || w.meaning.includes(search); // Persian
+        const inSynonyms = w.synonyms?.some((s) => s.toLowerCase().includes(q)) ?? false;
+        const inExample  = w.exampleSentence?.toLowerCase().includes(q) ?? false;
+        const inNotes    = w.notes?.toLowerCase().includes(q) ?? false;
+        const inTags     = w.tags?.some((t) => t.toLowerCase().includes(q)) ?? false;
+        return inWord || inMeaning || inSynonyms || inExample || inNotes || inTags;
       }
       return true;
     });
@@ -292,7 +298,7 @@ export default function VocabularyPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Search words…"
+              placeholder="جستجو... / Search EN or FA"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"

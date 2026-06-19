@@ -99,12 +99,12 @@ export default function SpeakingPage() {
         xpEarned: XP_REWARDS.speakingSession,
       });
 
-      toast.success(`+${XP_REWARDS.speakingSession} XP! Speaking session saved.`);
+      toast.success(`+${XP_REWARDS.speakingSession} XP! جلسه صحبت ذخیره شد.`);
       setActivePrompt(null);
       setRating(0);
       setNotes("");
     } catch {
-      toast.error("Failed to save session");
+      toast.error("ذخیره جلسه ناموفق بود");
     } finally {
       setSaving(false);
     }
@@ -113,8 +113,8 @@ export default function SpeakingPage() {
   return (
     <div>
       <Header
-        title="Speaking Practice"
-        subtitle={`${totalSessions ?? 0} sessions completed`}
+        title="Speaking"
+        subtitle={`${totalSessions ?? 0} جلسه انجام شده`}
       />
 
       <div className="p-6 space-y-6 max-w-5xl mx-auto">
@@ -146,18 +146,18 @@ export default function SpeakingPage() {
               </div>
 
               <div className="rounded-xl bg-muted/40 p-4 text-sm text-muted-foreground">
-                <p className="font-medium text-foreground mb-1">Tips:</p>
-                <ul className="space-y-1 list-disc list-inside">
-                  <li>Speak for at least 2 minutes</li>
-                  <li>Use varied vocabulary and grammar structures</li>
-                  <li>Don&apos;t worry about mistakes — focus on fluency</li>
-                  <li>Record yourself if possible</li>
+                <p className="font-medium text-foreground mb-1">نکته‌ها:</p>
+                <ul className="space-y-1 list-disc list-inside fa">
+                  <li>حداقل ۲ دقیقه صحبت کن</li>
+                  <li>از واژگان و ساختارهای گرامری متنوع استفاده کن</li>
+                  <li>نگران اشتباه نباش — روی روان بودن تمرکز کن</li>
+                  <li>اگه می‌تونی صدای خودت رو ضبط کن</li>
                 </ul>
               </div>
 
               {/* Self Evaluation */}
               <div className="space-y-3">
-                <label className="text-sm font-medium text-foreground">Your Performance Rating</label>
+                <label className="text-sm font-medium text-foreground">امتیاز عملکردت</label>
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -178,9 +178,9 @@ export default function SpeakingPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">Notes & Reflection</label>
+                <label className="text-sm font-medium text-foreground">یادداشت و بازنگری</label>
                 <Textarea
-                  placeholder="How did it go? What vocabulary did you use? What could you improve?"
+                  placeholder="چطور پیش رفت؟ چه واژگانی استفاده کردی؟ چی رو می‌تونی بهتر کنی؟"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
@@ -190,11 +190,11 @@ export default function SpeakingPage() {
               <div className="flex gap-3">
                 <Button onClick={getRandomPrompt} variant="outline" className="gap-2">
                   <Shuffle className="w-4 h-4" />
-                  New Prompt
+                  موضوع جدید
                 </Button>
                 <Button onClick={saveSession} disabled={saving} className="gap-2 flex-1">
                   <Save className="w-4 h-4" />
-                  {saving ? "Saving..." : "Save Session"}
+                  {saving ? "در حال ذخیره..." : "ذخیره جلسه"}
                 </Button>
               </div>
             </motion.div>
@@ -209,13 +209,13 @@ export default function SpeakingPage() {
               <div className="w-16 h-16 rounded-2xl bg-primary/15 border border-primary/20 flex items-center justify-center mx-auto mb-4">
                 <Mic className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="font-semibold text-foreground mb-2">Ready to practice speaking?</h3>
-              <p className="text-sm text-muted-foreground mb-5">
-                Get a random prompt or choose one from the list below
+              <h3 className="font-semibold text-foreground mb-2">آماده‌ای تمرین مکالمه کنی؟</h3>
+              <p className="text-sm text-muted-foreground mb-5 fa">
+                یه موضوع تصادفی بگیر یا از لیست پایین یکی رو انتخاب کن
               </p>
               <Button onClick={getRandomPrompt} className="gap-2">
                 <Shuffle className="w-4 h-4" />
-                Get Random Prompt
+                موضوع تصادفی
               </Button>
             </motion.div>
           )}
@@ -224,7 +224,7 @@ export default function SpeakingPage() {
         {/* Prompt Library */}
         <div>
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            Prompt Library
+            کتابخانه موضوع‌ها — Prompts
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {SPEAKING_PROMPTS.map((prompt, i) => (
@@ -250,7 +250,7 @@ export default function SpeakingPage() {
         {sessions && sessions.length > 0 && (
           <div>
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-              Recent Sessions
+              جلسه‌های اخیر — Recent
             </h3>
             <div className="space-y-2">
               {sessions.map((session) => (

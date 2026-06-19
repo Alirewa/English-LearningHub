@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, BookOpen, CreditCard, MessageSquare,
   GraduationCap, FileText, PenLine, Mic, CalendarDays,
-  Sparkles, ChevronLeft, Flame, Star, X, ClipboardList,
+  Sparkles, ChevronLeft, Flame, Star, X, ClipboardList, Database,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/lib/store";
@@ -15,34 +15,35 @@ import { db } from "@/lib/db";
 
 const NAV_ITEMS = [
   {
-    group: "Overview",
+    group: "نمای کلی",
     items: [
-      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/dashboard", label: "داشبورد", icon: LayoutDashboard },
     ],
   },
   {
-    group: "Learn",
+    group: "یادگیری",
     items: [
-      { href: "/vocabulary", label: "Vocabulary", icon: BookOpen },
-      { href: "/flashcards", label: "Flashcards", icon: CreditCard },
-      { href: "/grammar", label: "Grammar", icon: GraduationCap },
-      { href: "/sentences", label: "Sentences", icon: MessageSquare },
+      { href: "/vocabulary", label: "واژگان", icon: BookOpen },
+      { href: "/flashcards", label: "فلش‌کارت", icon: CreditCard },
+      { href: "/grammar", label: "گرامر", icon: GraduationCap },
+      { href: "/sentences", label: "جملات", icon: MessageSquare },
     ],
   },
   {
-    group: "Practice",
+    group: "تمرین",
     items: [
-      { href: "/reading", label: "Reading", icon: FileText },
-      { href: "/writing", label: "Writing", icon: PenLine },
-      { href: "/speaking", label: "Speaking", icon: Mic },
-      { href: "/exam", label: "Exam Mode", icon: ClipboardList },
+      { href: "/reading", label: "خواندن", icon: FileText },
+      { href: "/writing", label: "نوشتن", icon: PenLine },
+      { href: "/speaking", label: "صحبت کردن", icon: Mic },
+      { href: "/exam", label: "حالت آزمون", icon: ClipboardList },
     ],
   },
   {
-    group: "Tools",
+    group: "ابزارها",
     items: [
-      { href: "/planner", label: "Planner", icon: CalendarDays },
-      { href: "/ai-tools", label: "AI Tools", icon: Sparkles },
+      { href: "/planner", label: "برنامه‌ریز", icon: CalendarDays },
+      { href: "/ai-tools", label: "ابزار هوش مصنوعی", icon: Sparkles },
+      { href: "/data", label: "خروجی / ورودی", icon: Database },
     ],
   },
 ];
@@ -136,7 +137,7 @@ function NavContent({
       {!collapsed && todayStats && todayStats.xpEarned > 0 && (
         <div className="px-4 py-3 border-t border-sidebar-border">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Today</span>
+            <span className="text-muted-foreground">امروز</span>
             <span className="font-semibold text-primary">+{todayStats.xpEarned} XP</span>
           </div>
         </div>
@@ -169,7 +170,7 @@ export function DesktopSidebar() {
               className="flex flex-col min-w-0"
             >
               <span className="text-sm font-semibold text-foreground">English Hub</span>
-              <span className="text-[10px] text-muted-foreground">Personal Study</span>
+              <span className="text-[10px] text-muted-foreground">مطالعه شخصی</span>
             </motion.div>
           )}
         </AnimatePresence>

@@ -46,7 +46,7 @@ function ResultCard({ result, onCopy }: { result: AIResult; onCopy: () => void }
           size="icon"
           className="w-7 h-7 text-muted-foreground"
           onClick={onCopy}
-          title="Copy result"
+          title="کپی نتیجه"
         >
           <Copy className="w-3.5 h-3.5" />
         </Button>
@@ -66,7 +66,7 @@ function SentenceExplainer() {
   const [loading, setLoading] = useState(false);
 
   const analyze = async () => {
-    if (!input.trim()) { toast.error("Enter a sentence first"); return; }
+    if (!input.trim()) { toast.error("اول یه جمله وارد کن"); return; }
     setLoading(true);
     try {
       const content = await callAI(
@@ -78,9 +78,9 @@ function SentenceExplainer() {
 4. **Usage Context**: When and how is this sentence typically used?
 Keep your response clear, educational, and helpful for English learners.`
       );
-      setResult({ type: "Sentence Analysis", content });
+      setResult({ type: "تحلیل جمله", content });
     } catch {
-      toast.error("AI request failed. Check your API configuration.");
+      toast.error("درخواست هوش مصنوعی ناموفق بود. تنظیمات API رو بررسی کن.");
     } finally {
       setLoading(false);
     }
@@ -89,7 +89,7 @@ Keep your response clear, educational, and helpful for English learners.`
   return (
     <div className="space-y-4">
       <div className="space-y-1.5">
-        <label className="text-sm font-medium text-foreground">Enter a sentence to analyze</label>
+        <label className="text-sm font-medium text-foreground">جمله‌ای برای تحلیل وارد کن</label>
         <Textarea
           placeholder='e.g. "Had I known about the meeting, I would have attended it."'
           value={input}
@@ -100,10 +100,10 @@ Keep your response clear, educational, and helpful for English learners.`
       <div className="flex gap-2">
         <Button onClick={analyze} disabled={loading || !input.trim()} className="gap-2">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-          {loading ? "Analyzing..." : "Analyze Sentence"}
+          {loading ? "در حال تحلیل..." : "تحلیل جمله"}
         </Button>
         {result && (
-          <Button variant="ghost" size="icon" onClick={() => setResult(null)} title="Clear">
+          <Button variant="ghost" size="icon" onClick={() => setResult(null)} title="پاک کردن">
             <RotateCcw className="w-4 h-4" />
           </Button>
         )}
@@ -111,7 +111,7 @@ Keep your response clear, educational, and helpful for English learners.`
       {result && (
         <ResultCard
           result={result}
-          onCopy={() => { navigator.clipboard.writeText(result.content); toast.success("Copied!"); }}
+          onCopy={() => { navigator.clipboard.writeText(result.content); toast.success("کپی شد!"); }}
         />
       )}
     </div>
@@ -124,7 +124,7 @@ function GrammarChecker() {
   const [loading, setLoading] = useState(false);
 
   const check = async () => {
-    if (!input.trim()) { toast.error("Enter text to check"); return; }
+    if (!input.trim()) { toast.error("متنی برای بررسی وارد کن"); return; }
     setLoading(true);
     try {
       const content = await callAI(
@@ -137,9 +137,9 @@ function GrammarChecker() {
 
 Be specific, educational, and supportive.`
       );
-      setResult({ type: "Grammar Check", content });
+      setResult({ type: "بررسی گرامر", content });
     } catch {
-      toast.error("AI request failed");
+      toast.error("درخواست هوش مصنوعی ناموفق بود");
     } finally {
       setLoading(false);
     }
@@ -148,9 +148,9 @@ Be specific, educational, and supportive.`
   return (
     <div className="space-y-4">
       <div className="space-y-1.5">
-        <label className="text-sm font-medium text-foreground">Enter text to check</label>
+        <label className="text-sm font-medium text-foreground">متن برای بررسی وارد کن</label>
         <Textarea
-          placeholder="Paste your English text here for grammar checking..."
+          placeholder="متن انگلیسی‌ت رو برای بررسی گرامر اینجا بذار..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           rows={6}
@@ -159,7 +159,7 @@ Be specific, educational, and supportive.`
       <div className="flex gap-2">
         <Button onClick={check} disabled={loading || !input.trim()} className="gap-2">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-          {loading ? "Checking..." : "Check Grammar"}
+          {loading ? "در حال بررسی..." : "بررسی گرامر"}
         </Button>
         {result && (
           <Button variant="ghost" size="icon" onClick={() => setResult(null)}>
@@ -170,7 +170,7 @@ Be specific, educational, and supportive.`
       {result && (
         <ResultCard
           result={result}
-          onCopy={() => { navigator.clipboard.writeText(result.content); toast.success("Copied!"); }}
+          onCopy={() => { navigator.clipboard.writeText(result.content); toast.success("کپی شد!"); }}
         />
       )}
     </div>
@@ -183,7 +183,7 @@ function VocabGenerator() {
   const [loading, setLoading] = useState(false);
 
   const generate = async () => {
-    if (!topic.trim()) { toast.error("Enter a topic"); return; }
+    if (!topic.trim()) { toast.error("یه موضوع وارد کن"); return; }
     setLoading(true);
     try {
       const content = await callAI(
@@ -197,9 +197,9 @@ function VocabGenerator() {
 
 Format it neatly and make it educational for intermediate English learners.`
       );
-      setResult({ type: `Vocabulary: ${topic}`, content });
+      setResult({ type: `واژگان: ${topic}`, content });
     } catch {
-      toast.error("AI request failed");
+      toast.error("درخواست هوش مصنوعی ناموفق بود");
     } finally {
       setLoading(false);
     }
@@ -208,9 +208,9 @@ Format it neatly and make it educational for intermediate English learners.`
   return (
     <div className="space-y-4">
       <div className="space-y-1.5">
-        <label className="text-sm font-medium text-foreground">Topic or Theme</label>
+        <label className="text-sm font-medium text-foreground">موضوع یا زمینه</label>
         <Textarea
-          placeholder='e.g. "Business meetings", "Travel vocabulary", "Medical terms"...'
+          placeholder='مثلاً «جلسات کاری»، «واژگان سفر»، «اصطلاحات پزشکی»...'
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
           rows={2}
@@ -219,7 +219,7 @@ Format it neatly and make it educational for intermediate English learners.`
       <div className="flex gap-2">
         <Button onClick={generate} disabled={loading || !topic.trim()} className="gap-2">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <BookOpen className="w-4 h-4" />}
-          {loading ? "Generating..." : "Generate Vocabulary"}
+          {loading ? "در حال ساخت..." : "ساخت واژگان"}
         </Button>
         {result && (
           <Button variant="ghost" size="icon" onClick={() => setResult(null)}>
@@ -230,7 +230,7 @@ Format it neatly and make it educational for intermediate English learners.`
       {result && (
         <ResultCard
           result={result}
-          onCopy={() => { navigator.clipboard.writeText(result.content); toast.success("Copied!"); }}
+          onCopy={() => { navigator.clipboard.writeText(result.content); toast.success("کپی شد!"); }}
         />
       )}
     </div>
@@ -257,9 +257,9 @@ function DailyChallenge() {
 
 Make it fun, practical, and suitable for intermediate English learners.`
       );
-      setResult({ type: `Daily Challenge — ${today}`, content });
+      setResult({ type: `چالش روزانه — ${today}`, content });
     } catch {
-      toast.error("AI request failed");
+      toast.error("درخواست هوش مصنوعی ناموفق بود");
     } finally {
       setLoading(false);
     }
@@ -273,21 +273,21 @@ Make it fun, practical, and suitable for intermediate English learners.`
             <Zap className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h3 className="font-semibold text-foreground">Daily English Challenge</h3>
+            <h3 className="font-semibold text-foreground">چالش روزانه انگلیسی</h3>
             <p className="text-sm text-muted-foreground">
-              Get a personalized challenge for today with vocabulary, grammar, speaking, and writing tasks
+              یه چالش شخصی‌سازی‌شده برای امروز با تمرین‌های واژگان، گرامر، صحبت و نوشتن بگیر
             </p>
           </div>
         </div>
         <Button onClick={generate} disabled={loading} className="gap-2 w-full sm:w-auto">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-          {loading ? "Generating challenge..." : "Generate Today's Challenge"}
+          {loading ? "در حال ساخت چالش..." : "ساخت چالش امروز"}
         </Button>
       </div>
       {result && (
         <ResultCard
           result={result}
-          onCopy={() => { navigator.clipboard.writeText(result.content); toast.success("Copied!"); }}
+          onCopy={() => { navigator.clipboard.writeText(result.content); toast.success("کپی شد!"); }}
         />
       )}
     </div>
@@ -323,7 +323,7 @@ Always respond as the Teacher character.`
       );
       setMessages([...newMessages, { role: "ai", content }]);
     } catch {
-      toast.error("AI request failed");
+      toast.error("درخواست هوش مصنوعی ناموفق بود");
       setMessages(newMessages);
     } finally {
       setLoading(false);
@@ -337,8 +337,8 @@ Always respond as the Teacher character.`
           <MessageSquare className="w-4 h-4 text-primary" />
         </div>
         <div>
-          <p className="text-sm font-medium text-foreground">AI Conversation Partner</p>
-          <p className="text-xs text-muted-foreground">Practice English conversation with AI. Mistakes will be gently corrected.</p>
+          <p className="text-sm font-medium text-foreground">همراه مکالمه هوش مصنوعی</p>
+          <p className="text-xs text-muted-foreground">با هوش مصنوعی مکالمه انگلیسی تمرین کن. اشتباه‌ها با ملایمت اصلاح می‌شن.</p>
         </div>
         {messages.length > 0 && (
           <Button
@@ -348,7 +348,7 @@ Always respond as the Teacher character.`
             onClick={() => setMessages([])}
           >
             <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
-            Reset
+            شروع دوباره
           </Button>
         )}
       </div>
@@ -369,7 +369,7 @@ Always respond as the Teacher character.`
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted text-foreground"
                 }`}>
-                  {msg.role === "user" ? "You" : "AI"}
+                  {msg.role === "user" ? "تو" : "AI"}
                 </div>
                 <div className={`rounded-2xl px-4 py-3 max-w-[80%] text-sm leading-relaxed ${
                   msg.role === "user"
@@ -397,7 +397,7 @@ Always respond as the Teacher character.`
       {/* Input */}
       <div className="flex gap-2">
         <Textarea
-          placeholder={messages.length === 0 ? 'Start a conversation in English... e.g. "Hello! Can you help me practice my English?"' : "Type your message..."}
+          placeholder={messages.length === 0 ? 'مکالمه رو به انگلیسی شروع کن... مثلاً "Hello! Can you help me practice my English?"' : "پیامت رو بنویس..."}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
@@ -411,10 +411,10 @@ Always respond as the Teacher character.`
           disabled={loading}
         />
         <Button onClick={send} disabled={loading || !input.trim()} className="self-end">
-          Send
+          ارسال
         </Button>
       </div>
-      <p className="text-xs text-muted-foreground">Press Enter to send, Shift+Enter for new line</p>
+      <p className="text-xs text-muted-foreground">Enter برای ارسال، Shift+Enter برای خط جدید</p>
     </div>
   );
 }
@@ -422,30 +422,30 @@ Always respond as the Teacher character.`
 export default function AIToolsPage() {
   return (
     <div>
-      <Header title="AI Tools" subtitle="Powered by Claude AI" />
+      <Header title="ابزارهای هوش مصنوعی" subtitle="قدرت‌گرفته از Claude AI" />
 
       <div className="p-6 max-w-3xl mx-auto">
         <Tabs defaultValue="explainer">
           <TabsList className="mb-6 flex flex-wrap h-auto gap-1 bg-muted p-1">
             <TabsTrigger value="explainer" className="gap-1.5 text-xs">
               <MessageSquare className="w-3.5 h-3.5" />
-              Sentence Explainer
+              تحلیل جمله
             </TabsTrigger>
             <TabsTrigger value="grammar" className="gap-1.5 text-xs">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              Grammar Checker
+              بررسی گرامر
             </TabsTrigger>
             <TabsTrigger value="vocab" className="gap-1.5 text-xs">
               <BookOpen className="w-3.5 h-3.5" />
-              Vocab Generator
+              ساخت واژگان
             </TabsTrigger>
             <TabsTrigger value="challenge" className="gap-1.5 text-xs">
               <Zap className="w-3.5 h-3.5" />
-              Daily Challenge
+              چالش روزانه
             </TabsTrigger>
             <TabsTrigger value="conversation" className="gap-1.5 text-xs">
               <Sparkles className="w-3.5 h-3.5" />
-              AI Conversation
+              مکالمه هوش مصنوعی
             </TabsTrigger>
           </TabsList>
           <TabsContent value="explainer" keepMounted={false}><SentenceExplainer /></TabsContent>

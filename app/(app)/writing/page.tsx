@@ -34,7 +34,7 @@ function WritingEditor({
   const wordCount = countWords(content);
 
   const handleSave = async () => {
-    if (!content.trim()) { toast.error("Write something first!"); return; }
+    if (!content.trim()) { toast.error("اول یه چیزی بنویس!"); return; }
     setSaving(true);
     try {
       const minutes = Math.round((Date.now() - startTime) / 60000);
@@ -46,7 +46,7 @@ function WritingEditor({
           wordCount,
           updatedAt: new Date(),
         });
-        toast.success("Entry updated!");
+        toast.success("نوشته به‌روزرسانی شد!");
       } else {
         await db.writingEntries.add({
           title: title || `Journal ${format(new Date(), "MMM d, yyyy")}`,
@@ -67,11 +67,11 @@ function WritingEditor({
           writingMinutes: minutes,
           xpEarned: XP_REWARDS.writingEntry,
         });
-        toast.success(`+${XP_REWARDS.writingEntry} XP! Entry saved.`);
+        toast.success(`+${XP_REWARDS.writingEntry} XP! نوشته ذخیره شد.`);
       }
       onSave();
     } catch {
-      toast.error("Failed to save");
+      toast.error("ذخیره ناموفق بود");
     } finally {
       setSaving(false);
     }
@@ -92,24 +92,24 @@ function WritingEditor({
           </Button>
           <div className="flex items-center gap-2 text-muted-foreground text-xs">
             <Type className="w-3.5 h-3.5" />
-            <span>{wordCount} words</span>
+            <span>{wordCount} کلمه</span>
           </div>
         </div>
         <Button onClick={handleSave} disabled={saving} size="sm">
-          {saving ? "Saving..." : "Save Entry"}
+          {saving ? "در حال ذخیره..." : "ذخیره"}
         </Button>
       </div>
 
       {/* Editor Body */}
       <div className="flex-1 overflow-y-auto p-6 max-w-3xl mx-auto w-full">
         <Input
-          placeholder="Title (optional)"
+          placeholder="عنوان (اختیاری)"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="text-xl font-semibold border-none bg-transparent px-0 text-foreground placeholder:text-muted-foreground/40 focus-visible:ring-0 mb-4"
         />
         <Textarea
-          placeholder="Start writing in English... What happened today? What are you thinking about? Practice makes perfect."
+          placeholder="به انگلیسی بنویس... امروز چی شد؟ به چی فکر می‌کنی؟ تمرین، کلید پیشرفته."
           value={content}
           onChange={(e) => setContent(e.target.value)}
           className="min-h-[50vh] border-none bg-transparent px-0 text-foreground text-base leading-relaxed placeholder:text-muted-foreground/40 focus-visible:ring-0 resize-none"
@@ -119,10 +119,10 @@ function WritingEditor({
         {/* Grammar Notes */}
         <div className="mt-8 pt-6 border-t border-border">
           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 block">
-            Grammar Notes
+            یادداشت‌های گرامری — Grammar Notes
           </label>
           <Textarea
-            placeholder="Note any grammar points, corrections, or things to remember..."
+            placeholder="نکات گرامری، تصحیح‌ها یا هرچیزی که می‌خوای یادت بمونه..."
             value={grammarNotes}
             onChange={(e) => setGrammarNotes(e.target.value)}
             className="min-h-[120px] bg-muted/30 text-sm"
@@ -152,14 +152,14 @@ export default function WritingPage() {
 
   const handleDelete = async (id: number) => {
     await db.writingEntries.delete(id);
-    toast.success("Entry deleted");
+    toast.success("نوشته حذف شد");
   };
 
   return (
     <div>
       <Header
-        title="Writing Practice"
-        subtitle={`${entries?.length ?? 0} entries · ${totalWords ?? 0} total words`}
+        title="Writing"
+        subtitle={`${entries?.length ?? 0} نوشته · ${totalWords ?? 0} کلمه`}
       />
 
       <div className="p-6 space-y-5 max-w-4xl mx-auto">
@@ -173,23 +173,23 @@ export default function WritingPage() {
             <PenLine className="w-7 h-7 text-primary" />
           </div>
           <div className="flex-1 text-center sm:text-left">
-            <h3 className="font-semibold text-foreground mb-1">Daily Journal</h3>
-            <p className="text-sm text-muted-foreground">
-              Write in English every day to improve fluency. Even 5 minutes makes a difference.
+            <h3 className="font-semibold text-foreground mb-1">دفترچه روزانه</h3>
+            <p className="text-sm text-muted-foreground fa">
+              هر روز به انگلیسی بنویس تا روان‌تر بشی. حتی ۵ دقیقه هم فرق ایجاد می‌کنه.
             </p>
           </div>
           <Button onClick={openNew} className="gap-2 shrink-0">
             <Plus className="w-4 h-4" />
-            New Entry
+            نوشته جدید
           </Button>
         </motion.div>
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4">
           {[
-            { label: "Total Entries", value: entries?.length ?? 0 },
-            { label: "Total Words", value: totalWords ?? 0 },
-            { label: "Avg. Words", value: entries?.length ? Math.round((totalWords ?? 0) / entries.length) : 0 },
+            { label: "تعداد نوشته‌ها", value: entries?.length ?? 0 },
+            { label: "مجموع کلمات", value: totalWords ?? 0 },
+            { label: "میانگین کلمات", value: entries?.length ? Math.round((totalWords ?? 0) / entries.length) : 0 },
           ].map(({ label, value }) => (
             <div key={label} className="rounded-xl border border-border bg-card p-4 text-center">
               <p className="text-2xl font-bold text-foreground">{value}</p>
@@ -202,11 +202,11 @@ export default function WritingPage() {
         {entries?.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <PenLine className="w-12 h-12 text-muted-foreground/40 mb-4" />
-            <h3 className="text-base font-medium text-foreground mb-1">No entries yet</h3>
-            <p className="text-sm text-muted-foreground mb-4">Start your English writing journey today</p>
+            <h3 className="text-base font-medium text-foreground mb-1">هنوز نوشته‌ای نداری</h3>
+            <p className="text-sm text-muted-foreground mb-4 fa">سفر نوشتن انگلیسیت رو از همین امروز شروع کن</p>
             <Button onClick={openNew} className="gap-2">
               <Plus className="w-4 h-4" />
-              Write First Entry
+              اولین نوشته
             </Button>
           </div>
         ) : (
@@ -244,7 +244,7 @@ export default function WritingPage() {
                   <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Type className="w-3 h-3" />
-                      {entry.wordCount} words
+                      {entry.wordCount} کلمه
                     </span>
                     <span className="flex items-center gap-1">
                       <Clock className="w-3 h-3" />
