@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Search, Heart, MessageSquare, Trash2, Copy, X } from "lucide-react";
 import { toast } from "sonner";
+import { useAppStore } from "@/lib/store";
+import { sentences as dict } from "@/lib/i18n/sentences";
 
 const SENTENCE_CATEGORIES = [
   "Travel", "Work", "Daily Life", "Technology", "Social",
@@ -33,13 +35,16 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 function SentenceCard({ sentence, onDelete }: { sentence: Sentence; onDelete: (id: number) => void }) {
+  const language = useAppStore((s) => s.language);
+  const t = dict[language];
+
   const toggleFav = async () => {
     await db.sentences.update(sentence.id!, { isFavorite: !sentence.isFavorite });
   };
 
   const copy = () => {
     navigator.clipboard.writeText(sentence.english);
-    toast.success("Copied to clipboard");
+    toast.success(t.card.copied);
   };
 
   return (
@@ -55,10 +60,10 @@ function SentenceCard({ sentence, onDelete }: { sentence: Sentence; onDelete: (i
           {sentence.english}
         </p>
         <div className="flex items-center gap-1 shrink-0">
-          <button onClick={copy} className="p-1.5 rounded hover:bg-muted transition-colors text-muted-foreground" title="Copy">
+          <button onClick={copy} className="p-1.5 rounded hover:bg-muted transition-colors text-muted-foreground" title={t.card.copy}>
             <Copy className="w-3.5 h-3.5" />
           </button>
-          <button onClick={toggleFav} className="p-1.5 rounded hover:bg-muted transition-colors" title="Favorite">
+          <button onClick={toggleFav} className="p-1.5 rounded hover:bg-muted transition-colors" title={t.card.favorite}>
             <Heart className={`w-3.5 h-3.5 transition-colors ${sentence.isFavorite ? "fill-red-400 text-red-400" : "text-muted-foreground"}`} />
           </button>
           <button
@@ -89,6 +94,8 @@ function SentenceCard({ sentence, onDelete }: { sentence: Sentence; onDelete: (i
 }
 
 export default function SentencesPage() {
+  const language = useAppStore((s) => s.language);
+  const t = dict[language];
   const [search, setSearch] = useState("");
   const [filterCat, setFilterCat] = useState("all");
   const [showFavs, setShowFavs] = useState(false);
@@ -115,7 +122,7 @@ export default function SentencesPage() {
 
   const handleSave = async () => {
     if (!form.english.trim() || !form.persian.trim()) {
-      toast.error("English and Persian fields are required");
+      toast.error(t.toasts.requiredFields);
       return;
     }
     setSaving(true);
@@ -128,11 +135,11 @@ export default function SentencesPage() {
         isFavorite: false,
         createdAt: new Date(),
       });
-      toast.success("Sentence added!");
+      toast.success(t.toasts.added);
       setForm({ english: "", persian: "", notes: "", category: "Daily Life" });
       setDialogOpen(false);
     } catch {
-      toast.error("Failed to save");
+      toast.error(t.toasts.saveFailed);
     } finally {
       setSaving(false);
     }
@@ -140,14 +147,14 @@ export default function SentencesPage() {
 
   const handleDelete = async (id: number) => {
     await db.sentences.delete(id);
-    toast.success("Deleted");
+    toast.success(t.toasts.deleted);
   };
 
   return (
     <div>
       <Header
-        title="Sentences"
-        subtitle={`${totalCount ?? 0} جمله ذخیره شده`}
+        title={t.header.title}
+        subtitle={t.header.subtitle(totalCount ?? 0)}
       />
 
       <div className="p-6 space-y-5 max-w-5xl mx-auto">
@@ -156,7 +163,7 @@ export default function SentencesPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="جستجو در جملات... / Search EN or FA"
+              placeholder={t.toolbar.searchPlaceholder}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
@@ -170,10 +177,10 @@ export default function SentencesPage() {
           <div className="flex gap-2 flex-wrap">
             <Select value={filterCat} onValueChange={(v) => setFilterCat(v ?? "all")}>
               <SelectTrigger className="w-36">
-                <SelectValue placeholder="Category" />
+                <SelectValue placeholder={t.toolbar.categoryPlaceholder} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All categories</SelectItem>
+                <SelectItem value="all">{t.toolbar.allCategories}</SelectItem>
                 {SENTENCE_CATEGORIES.map((c) => (
                   <SelectItem key={c} value={c}>{c}</SelectItem>
                 ))}
@@ -186,12 +193,12 @@ export default function SentencesPage() {
               onClick={() => setShowFavs(!showFavs)}
             >
               <Heart className={`w-3.5 h-3.5 mr-1.5 ${showFavs ? "fill-current" : ""}`} />
-              Favorites
+              {t.toolbar.favorites}
             </Button>
 
             <Button onClick={() => setDialogOpen(true)} className="gap-2">
               <Plus className="w-4 h-4" />
-              Add Sentence
+              {t.toolbar.addSentence}
             </Button>
           </div>
         </div>
@@ -202,7 +209,7 @@ export default function SentencesPage() {
             onClick={() => setFilterCat("all")}
             className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${filterCat === "all" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"}`}
           >
-            All ({totalCount ?? 0})
+            {t.tabs.all(totalCount ?? 0)}
           </button>
           {SENTENCE_CATEGORIES.map((cat) => (
             <button
@@ -219,14 +226,14 @@ export default function SentencesPage() {
         {sentences?.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <MessageSquare className="w-12 h-12 text-muted-foreground/40 mb-4" />
-            <h3 className="text-base font-medium text-foreground mb-1">No sentences found</h3>
+            <h3 className="text-base font-medium text-foreground mb-1">{t.emptyState.title}</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              {search ? "Try different search terms" : "Add useful English sentences with Persian translations"}
+              {search ? t.emptyState.withSearch : t.emptyState.withoutSearch}
             </p>
             {!search && (
               <Button onClick={() => setDialogOpen(true)} className="gap-2">
                 <Plus className="w-4 h-4" />
-                Add First Sentence
+                {t.emptyState.addFirst}
               </Button>
             )}
           </div>
@@ -244,22 +251,22 @@ export default function SentencesPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Add New Sentence</DialogTitle>
+            <DialogTitle>{t.dialog.title}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-foreground">English Sentence *</label>
+              <label className="text-xs font-medium text-foreground">{t.dialog.englishLabel}</label>
               <Textarea
-                placeholder="Could you please repeat that?"
+                placeholder={t.dialog.englishPlaceholder}
                 value={form.english}
                 onChange={(e) => setForm({ ...form, english: e.target.value })}
                 rows={2}
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-foreground">Persian Translation *</label>
+              <label className="text-xs font-medium text-foreground">{t.dialog.persianLabel}</label>
               <Textarea
-                placeholder="می‌تونید دوباره بگید؟"
+                placeholder={t.dialog.persianPlaceholder}
                 value={form.persian}
                 onChange={(e) => setForm({ ...form, persian: e.target.value })}
                 rows={2}
@@ -267,15 +274,15 @@ export default function SentencesPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-foreground">Notes</label>
+              <label className="text-xs font-medium text-foreground">{t.dialog.notesLabel}</label>
               <Input
-                placeholder="Usage notes or context..."
+                placeholder={t.dialog.notesPlaceholder}
                 value={form.notes}
                 onChange={(e) => setForm({ ...form, notes: e.target.value })}
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-foreground">Category</label>
+              <label className="text-xs font-medium text-foreground">{t.dialog.categoryLabel}</label>
               <Select value={form.category} onValueChange={(v) => v && setForm({ ...form, category: v })}>
                 <SelectTrigger>
                   <SelectValue />
@@ -289,9 +296,9 @@ export default function SentencesPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>{t.dialog.cancel}</Button>
             <Button onClick={handleSave} disabled={saving}>
-              {saving ? "Saving..." : "Add Sentence"}
+              {saving ? t.dialog.saving : t.dialog.save}
             </Button>
           </DialogFooter>
         </DialogContent>

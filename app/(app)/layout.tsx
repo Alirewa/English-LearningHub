@@ -6,6 +6,7 @@ import { DesktopSidebar, MobileSidebar } from "@/components/layout/sidebar";
 import { CommandPalette } from "@/components/layout/command-palette";
 import { db, seedGrammarTopics, seedSentences, seedUserProfile } from "@/lib/db";
 import { Toaster } from "sonner";
+import { useAppStore } from "@/lib/store";
 
 export const MobileMenuContext = createContext<() => void>(() => {});
 export const useMobileMenu = () => useContext(MobileMenuContext);
@@ -13,10 +14,16 @@ export const useMobileMenu = () => useContext(MobileMenuContext);
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
+  const language = useAppStore((s) => s.language);
 
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+    document.documentElement.dir = language === "fa" ? "rtl" : "ltr";
+  }, [language]);
 
   useEffect(() => {
     async function init() {

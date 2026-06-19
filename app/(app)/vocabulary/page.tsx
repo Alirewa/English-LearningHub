@@ -16,6 +16,8 @@ import {
   Search, Heart, BookOpen, Trash2, Edit3, X, Plus, ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useAppStore } from "@/lib/store";
+import { vocabulary } from "@/lib/i18n/vocabulary";
 
 const CATEGORIES = ["General", "Business", "Academic", "Travel", "Technology", "Medical", "Legal", "Idioms", "Phrasal Verbs"];
 const DIFFICULTIES = ["easy", "medium", "hard"] as const;
@@ -33,10 +35,11 @@ function DifficultyBadge({ difficulty }: { difficulty: VocabWord["difficulty"] }
   );
 }
 
-function WordCard({ word, onEdit, onDelete }: {
+function WordCard({ word, onEdit, onDelete, t }: {
   word: VocabWord;
   onEdit: (w: VocabWord) => void;
   onDelete: (id: number) => void;
+  t: (typeof vocabulary)["en"];
 }) {
   const [revealed, setRevealed] = useState(false);
 
@@ -58,7 +61,7 @@ function WordCard({ word, onEdit, onDelete }: {
           <p
             className={`text-sm mt-0.5 transition-all ${revealed ? "text-foreground" : "text-transparent bg-muted/60 rounded select-none cursor-pointer"}`}
             onClick={() => !revealed && setRevealed(true)}
-            title={!revealed ? "Click to reveal" : undefined}
+            title={!revealed ? t.card.revealHint : undefined}
           >
             {word.meaning}
           </p>
@@ -67,7 +70,7 @@ function WordCard({ word, onEdit, onDelete }: {
               className="text-[11px] text-primary mt-1 hover:underline"
               onClick={() => setRevealed(true)}
             >
-              Show meaning
+              {t.card.showMeaning}
             </button>
           )}
         </div>
@@ -114,6 +117,8 @@ const emptyForm = {
 };
 
 export default function VocabularyPage() {
+  const language = useAppStore((s) => s.language);
+  const t = vocabulary[language];
   const [search, setSearch] = useState("");
   const [filterDiff, setFilterDiff] = useState<string>("all");
   const [showFavs, setShowFavs] = useState(false);
@@ -182,11 +187,11 @@ export default function VocabularyPage() {
         });
       }
       await updateTodayStats({ xpEarned: XP_REWARDS.wordAdded });
-      toast.success(`"${quickWord.trim()}" added! +${XP_REWARDS.wordAdded} XP`);
+      toast.success(t.toasts.wordAdded(quickWord.trim(), XP_REWARDS.wordAdded));
       setQuickWord("");
       setQuickMeaning("");
     } catch {
-      toast.error("Failed to add word");
+      toast.error(t.toasts.addFailed);
     } finally {
       setQuickAdding(false);
     }
@@ -212,7 +217,7 @@ export default function VocabularyPage() {
 
   const handleSave = async () => {
     if (!form.word.trim() || !form.meaning.trim()) {
-      toast.error("Word and meaning are required");
+      toast.error(t.toasts.wordMeaningRequired);
       return;
     }
     setSaving(true);
@@ -234,11 +239,11 @@ export default function VocabularyPage() {
       };
       if (editWord?.id) {
         await db.vocabWords.update(editWord.id, data);
-        toast.success("Word updated!");
+        toast.success(t.toasts.wordUpdated);
       }
       setEditOpen(false);
     } catch {
-      toast.error("Failed to save");
+      toast.error(t.toasts.saveFailed);
     } finally {
       setSaving(false);
     }
@@ -247,21 +252,21 @@ export default function VocabularyPage() {
   const handleDelete = async (id: number) => {
     await db.vocabWords.delete(id);
     await db.flashcards.where("wordId").equals(id).delete();
-    toast.success("Word deleted");
+    toast.success(t.toasts.wordDeleted);
   };
 
   return (
     <div>
-      <Header title="Vocabulary" subtitle={`${totalWords ?? 0} words saved`} />
+      <Header title={t.title} subtitle={t.subtitle(totalWords ?? 0)} />
 
       <div className="p-4 sm:p-6 space-y-4 max-w-5xl mx-auto">
 
         {/* ── Quick-capture bar ── */}
         <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
-          <p className="text-xs font-semibold text-primary mb-3 uppercase tracking-wider">Quick Add</p>
+          <p className="text-xs font-semibold text-primary mb-3 uppercase tracking-wider">{t.quickAdd.label}</p>
           <div className="flex gap-2 flex-col sm:flex-row">
             <Input
-              placeholder="English word…"
+              placeholder={t.quickAdd.wordPlaceholder}
               value={quickWord}
               onChange={(e) => setQuickWord(e.target.value)}
               onKeyDown={(e) => e.key === "Tab" && (e.preventDefault(), meaningRef.current?.focus())}
@@ -271,7 +276,7 @@ export default function VocabularyPage() {
             <div className="flex gap-2 flex-1">
               <Input
                 ref={meaningRef}
-                placeholder="Meaning / معنی…"
+                placeholder={t.quickAdd.meaningPlaceholder}
                 value={quickMeaning}
                 onChange={(e) => setQuickMeaning(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleQuickAdd()}
@@ -283,13 +288,13 @@ export default function VocabularyPage() {
                 className="gap-1.5 shrink-0"
               >
                 <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">Add</span>
+                <span className="hidden sm:inline">{t.quickAdd.add}</span>
                 <ArrowRight className="w-3.5 h-3.5 sm:hidden" />
               </Button>
             </div>
           </div>
           <p className="text-[11px] text-muted-foreground mt-2">
-            Tab → jump to meaning · Enter → save · Flashcard created automatically
+            {t.quickAdd.hint}
           </p>
         </div>
 
@@ -298,7 +303,7 @@ export default function VocabularyPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="جستجو... / Search EN or FA"
+              placeholder={t.search.placeholder}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
@@ -312,10 +317,10 @@ export default function VocabularyPage() {
           <div className="flex gap-2">
             <Select value={filterDiff} onValueChange={(v) => setFilterDiff(v ?? "all")}>
               <SelectTrigger className="w-32">
-                <SelectValue placeholder="Level" />
+                <SelectValue placeholder={t.search.levelPlaceholder} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All levels</SelectItem>
+                <SelectItem value="all">{t.search.allLevels}</SelectItem>
                 {DIFFICULTIES.map((d) => (
                   <SelectItem key={d} value={d}>{d}</SelectItem>
                 ))}
@@ -334,7 +339,7 @@ export default function VocabularyPage() {
 
         {words && (
           <p className="text-xs text-muted-foreground">
-            {words.length} {words.length === 1 ? "word" : "words"}
+            {t.wordCount(words.length)}
           </p>
         )}
 
@@ -342,14 +347,14 @@ export default function VocabularyPage() {
         {words?.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <BookOpen className="w-10 h-10 text-muted-foreground/40 mb-3" />
-            <p className="text-sm font-medium text-foreground mb-1">No words yet</p>
-            <p className="text-xs text-muted-foreground">Use the Quick Add bar above to start</p>
+            <p className="text-sm font-medium text-foreground mb-1">{t.empty.title}</p>
+            <p className="text-xs text-muted-foreground">{t.empty.description}</p>
           </div>
         ) : (
           <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <AnimatePresence mode="popLayout">
               {words?.map((word) => (
-                <WordCard key={word.id} word={word} onEdit={openEdit} onDelete={handleDelete} />
+                <WordCard key={word.id} word={word} onEdit={openEdit} onDelete={handleDelete} t={t} />
               ))}
             </AnimatePresence>
           </motion.div>
@@ -360,34 +365,34 @@ export default function VocabularyPage() {
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Word</DialogTitle>
+            <DialogTitle>{t.editDialog.title}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <label className="text-xs font-medium">Word</label>
+                <label className="text-xs font-medium">{t.editDialog.word}</label>
                 <Input value={form.word} onChange={(e) => setForm({ ...form, word: e.target.value })} />
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-medium">Pronunciation</label>
+                <label className="text-xs font-medium">{t.editDialog.pronunciation}</label>
                 <Input value={form.pronunciation} onChange={(e) => setForm({ ...form, pronunciation: e.target.value })} className="font-mono" />
               </div>
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-medium">Meaning</label>
+              <label className="text-xs font-medium">{t.editDialog.meaning}</label>
               <Textarea value={form.meaning} onChange={(e) => setForm({ ...form, meaning: e.target.value })} rows={2} />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-medium">Example Sentence</label>
+              <label className="text-xs font-medium">{t.editDialog.exampleSentence}</label>
               <Textarea value={form.exampleSentence} onChange={(e) => setForm({ ...form, exampleSentence: e.target.value })} rows={2} />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-medium">Synonyms (comma separated)</label>
+              <label className="text-xs font-medium">{t.editDialog.synonyms}</label>
               <Input value={form.synonyms} onChange={(e) => setForm({ ...form, synonyms: e.target.value })} />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <label className="text-xs font-medium">Difficulty</label>
+                <label className="text-xs font-medium">{t.editDialog.difficulty}</label>
                 <Select value={form.difficulty} onValueChange={(v) => v && setForm({ ...form, difficulty: v as VocabWord["difficulty"] })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -396,7 +401,7 @@ export default function VocabularyPage() {
                 </Select>
               </div>
               <div className="space-y-1">
-                <label className="text-xs font-medium">Category</label>
+                <label className="text-xs font-medium">{t.editDialog.category}</label>
                 <Select value={form.category} onValueChange={(v) => v && setForm({ ...form, category: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -406,13 +411,13 @@ export default function VocabularyPage() {
               </div>
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-medium">Notes</label>
+              <label className="text-xs font-medium">{t.editDialog.notes}</label>
               <Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={saving}>{saving ? "Saving…" : "Update"}</Button>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>{t.editDialog.cancel}</Button>
+            <Button onClick={handleSave} disabled={saving}>{saving ? t.editDialog.saving : t.editDialog.update}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

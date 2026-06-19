@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { useAppStore } from "@/lib/store";
+import { data as dataDict } from "@/lib/i18n/data";
 
 async function exportAllData() {
   const [
@@ -49,6 +51,8 @@ async function exportAllData() {
 type ImportMode = "merge" | "replace";
 
 export default function DataPage() {
+  const language = useAppStore((s) => s.language);
+  const t = dataDict[language];
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importMode, setImportMode] = useState<ImportMode>("merge");
@@ -86,9 +90,9 @@ export default function DataPage() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast.success("فایل بکاپ دانلود شد!");
+      toast.success(t.exportSuccess);
     } catch {
-      toast.error("Export failed");
+      toast.error(t.exportFailed);
     } finally {
       setExporting(false);
     }
@@ -104,7 +108,7 @@ export default function DataPage() {
       const data = JSON.parse(text);
 
       if (!data.appName || data.appName !== "English Learning Hub") {
-        toast.error("فایل نامعتبر است — this file is not from English Hub");
+        toast.error(t.invalidFile);
         return;
       }
 
@@ -144,7 +148,7 @@ export default function DataPage() {
             if (data.userProfile?.length) await db.userProfile.bulkAdd(strip(data.userProfile));
           }
         );
-        toast.success("داده‌ها جایگزین شدند! صفحه رو رفرش کن.");
+        toast.success(t.replaceSuccess);
       } else {
         // Merge: only add items that don't already exist (by word/english text)
         const existingWords = new Set((await db.vocabWords.toArray()).map((w) => w.word.toLowerCase()));
@@ -159,12 +163,12 @@ export default function DataPage() {
         );
         if (newSentences.length) await db.sentences.bulkAdd(strip(newSentences));
 
-        toast.success(`درون‌ریزی موفق: ${newWords.length} کلمه، ${newSentences.length} جمله اضافه شد`);
+        toast.success(t.mergeSuccess(newWords.length, newSentences.length));
       }
 
       await loadStats();
     } catch (err) {
-      toast.error("Import failed — فایل خراب است");
+      toast.error(t.importFailed);
       console.error(err);
     } finally {
       setImporting(false);
@@ -174,7 +178,7 @@ export default function DataPage() {
 
   const handleExportText = async () => {
     const words = await db.vocabWords.toArray();
-    if (!words.length) { toast.error("هنوز کلمه‌ای ندارید"); return; }
+    if (!words.length) { toast.error(t.noWordsYet); return; }
 
     const lines = words.map((w) =>
       `${w.word} — ${w.meaning}${w.exampleSentence ? `\n   Example: ${w.exampleSentence}` : ""}`
@@ -189,21 +193,21 @@ export default function DataPage() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success("لیست کلمات دانلود شد!");
+    toast.success(t.wordListDownloaded);
   };
 
   const cards = [
-    { label: "کلمات ذخیره شده", labelEn: "Vocabulary", value: stats?.words ?? 0, icon: "📚" },
-    { label: "جملات", labelEn: "Sentences", value: stats?.sentences ?? 0, icon: "💬" },
-    { label: "گرامر", labelEn: "Grammar", value: stats?.grammar ?? 0, icon: "📖" },
-    { label: "نوشته‌ها", labelEn: "Writing", value: stats?.writing ?? 0, icon: "✍️" },
-    { label: "جلسات صحبت", labelEn: "Speaking", value: stats?.speaking ?? 0, icon: "🎙️" },
-    { label: "مقاله‌های خوانده شده", labelEn: "Reading", value: stats?.reading ?? 0, icon: "📰" },
+    { label: t.cards.vocabulary, labelEn: "Vocabulary", value: stats?.words ?? 0, icon: "📚" },
+    { label: t.cards.sentences, labelEn: "Sentences", value: stats?.sentences ?? 0, icon: "💬" },
+    { label: t.cards.grammar, labelEn: "Grammar", value: stats?.grammar ?? 0, icon: "📖" },
+    { label: t.cards.writing, labelEn: "Writing", value: stats?.writing ?? 0, icon: "✍️" },
+    { label: t.cards.speaking, labelEn: "Speaking", value: stats?.speaking ?? 0, icon: "🎙️" },
+    { label: t.cards.reading, labelEn: "Reading", value: stats?.reading ?? 0, icon: "📰" },
   ];
 
   return (
     <div>
-      <Header title="Export / Import" subtitle="بکاپ و بازیابی داده‌ها" />
+      <Header title={t.pageTitle} subtitle={t.pageSubtitle} />
 
       <div className="p-4 sm:p-6 max-w-2xl mx-auto space-y-6">
 
@@ -212,12 +216,12 @@ export default function DataPage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
               <Database className="w-4 h-4 text-primary" />
-              داده‌های ذخیره شده در مرورگر شما
+              {t.overview.heading}
             </h2>
             <button
               onClick={loadStats}
               className="text-muted-foreground hover:text-foreground transition-colors"
-              title="Refresh"
+              title={t.overview.refresh}
             >
               <RefreshCcw className="w-4 h-4" />
             </button>
@@ -244,7 +248,7 @@ export default function DataPage() {
         <div className="rounded-xl border border-border bg-card p-5 space-y-4">
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Download className="w-4 h-4 text-green-400" />
-            خروجی گرفتن — Export
+            {t.exportSection.heading}
           </h2>
 
           <div className="grid gap-3">
@@ -256,13 +260,13 @@ export default function DataPage() {
               <FileJson className="w-5 h-5 text-green-400 shrink-0 mt-0.5" />
               <div>
                 <p className="text-sm font-semibold text-foreground">
-                  {exporting ? "در حال آماده‌سازی..." : "بکاپ کامل — Full Backup (JSON)"}
+                  {exporting ? t.exportSection.preparing : t.exportSection.fullBackupTitle}
                 </p>
                 <p className="text-xs text-muted-foreground fa mt-0.5">
-                  همه کلمات، جملات، گرامرها، نوشته‌ها و آمار رو ذخیره می‌کنه
+                  {t.exportSection.fullBackupDescFa}
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Use to transfer to another browser or device
+                  {t.exportSection.fullBackupDescEn}
                 </p>
               </div>
             </button>
@@ -273,9 +277,9 @@ export default function DataPage() {
             >
               <Download className="w-5 h-5 text-primary shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-semibold text-foreground">لیست کلمات — Word List (TXT)</p>
+                <p className="text-sm font-semibold text-foreground">{t.exportSection.wordListTitle}</p>
                 <p className="text-xs text-muted-foreground fa mt-0.5">
-                  فقط کلمات با معنی — قابل پرینت یا اشتراک‌گذاری
+                  {t.exportSection.wordListDesc}
                 </p>
               </div>
             </button>
@@ -286,12 +290,12 @@ export default function DataPage() {
         <div className="rounded-xl border border-border bg-card p-5 space-y-4">
           <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Upload className="w-4 h-4 text-blue-400" />
-            وارد کردن داده — Import
+            {t.importSection.heading}
           </h2>
 
           {/* Import mode toggle */}
           <div className="space-y-2">
-            <p className="text-xs text-muted-foreground">نحوه درون‌ریزی:</p>
+            <p className="text-xs text-muted-foreground">{t.importSection.modeLabel}</p>
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setImportMode("merge")}
@@ -302,9 +306,9 @@ export default function DataPage() {
                 }`}
               >
                 <CheckCircle2 className="w-4 h-4 mb-1" />
-                <p>ادغام — Merge</p>
+                <p>{t.importSection.merge.title}</p>
                 <p className="text-[10px] font-normal text-muted-foreground mt-0.5 fa">
-                  فقط موارد جدید اضافه می‌شه، داده‌های موجود حفظ می‌شن
+                  {t.importSection.merge.desc}
                 </p>
               </button>
               <button
@@ -316,9 +320,9 @@ export default function DataPage() {
                 }`}
               >
                 <Trash2 className="w-4 h-4 mb-1" />
-                <p>جایگزینی — Replace</p>
+                <p>{t.importSection.replace.title}</p>
                 <p className="text-[10px] font-normal text-muted-foreground mt-0.5 fa">
-                  همه داده‌های فعلی پاک و با فایل جدید جایگزین می‌شه
+                  {t.importSection.replace.desc}
                 </p>
               </button>
             </div>
@@ -328,7 +332,7 @@ export default function DataPage() {
             <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
               <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
               <p className="text-xs text-destructive fa">
-                هشدار: این عملیات برگشت‌پذیر نیست. همه داده‌های فعلی پاک می‌شن.
+                {t.importSection.replaceWarning}
               </p>
             </div>
           )}
@@ -341,13 +345,13 @@ export default function DataPage() {
             <Upload className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-semibold text-foreground">
-                {importing ? "در حال پردازش..." : "انتخاب فایل JSON"}
+                {importing ? t.importSection.processing : t.importSection.selectFile}
               </p>
               <p className="text-xs text-muted-foreground fa mt-0.5">
-                فایل بکاپ قبلی رو انتخاب کن
+                {t.importSection.selectFileDesc}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Only .json files exported from this app
+                {t.importSection.selectFileNote}
               </p>
             </div>
             <input
@@ -364,9 +368,7 @@ export default function DataPage() {
         {/* Info */}
         <div className="rounded-xl border border-border bg-muted/20 p-4">
           <p className="text-xs text-muted-foreground fa leading-loose">
-            💡 راهنما: برای انتقال داده‌ها به مرورگر دیگه، اول بکاپ کامل بگیر.
-            بعد در مرورگر مقصد، همین پنل رو باز کن و فایل JSON رو import کن.
-            داده‌ها ۱۰۰٪ آفلاین و در مرورگر ذخیره می‌شن.
+            {t.infoNote}
           </p>
         </div>
 

@@ -14,6 +14,8 @@ import {
 import { FileText, Plus, CheckCircle2, Clock, BookOpen, Trash2, Eye, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useAppStore } from "@/lib/store";
+import { reading } from "@/lib/i18n/reading";
 
 function ReadingMode({
   session,
@@ -25,6 +27,8 @@ function ReadingMode({
   onComplete: () => void;
 }) {
   const [startTime] = useState(Date.now());
+  const language = useAppStore((s) => s.language);
+  const t = reading[language];
 
   const handleComplete = async () => {
     const minutes = Math.round((Date.now() - startTime) / 60000);
@@ -44,7 +48,7 @@ function ReadingMode({
       readingMinutes: minutes,
       xpEarned: XP_REWARDS.readingCompleted,
     });
-    toast.success(`+${XP_REWARDS.readingCompleted} XP! خواندن کامل شد.`);
+    toast.success(t.toasts.readingCompleted(XP_REWARDS.readingCompleted));
     onComplete();
   };
 
@@ -64,7 +68,7 @@ function ReadingMode({
         </div>
         <Button onClick={handleComplete} size="sm" className="gap-2" disabled={session.isCompleted}>
           <CheckCircle2 className="w-4 h-4" />
-          {session.isCompleted ? "خوانده شد" : "علامت‌گذاری به‌عنوان خوانده‌شده"}
+          {session.isCompleted ? t.readingMode.alreadyRead : t.readingMode.markAsRead}
         </Button>
       </div>
 
@@ -72,7 +76,7 @@ function ReadingMode({
         <div className="max-w-2xl mx-auto px-6 py-10">
           <h1 className="text-2xl font-bold text-foreground mb-2">{session.title}</h1>
           {session.source && (
-            <p className="text-sm text-muted-foreground mb-6">منبع: {session.source}</p>
+            <p className="text-sm text-muted-foreground mb-6">{t.readingMode.source(session.source)}</p>
           )}
           <div className="prose prose-sm prose-invert max-w-none">
             <p className="text-foreground leading-8 text-base whitespace-pre-wrap">{session.content}</p>
@@ -84,6 +88,8 @@ function ReadingMode({
 }
 
 export default function ReadingPage() {
+  const language = useAppStore((s) => s.language);
+  const t = reading[language];
   const [readingSession, setReadingSession] = useState<ReadingSession | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({ title: "", content: "", source: "" });
@@ -99,7 +105,7 @@ export default function ReadingPage() {
 
   const handleSave = async () => {
     if (!form.title.trim() || !form.content.trim()) {
-      toast.error("عنوان و متن الزامی هستند");
+      toast.error(t.toasts.requiredFields);
       return;
     }
     setSaving(true);
@@ -113,11 +119,11 @@ export default function ReadingPage() {
         isCompleted: false,
         createdAt: new Date(),
       });
-      toast.success("مقاله ذخیره شد!");
+      toast.success(t.toasts.saved);
       setForm({ title: "", content: "", source: "" });
       setDialogOpen(false);
     } catch {
-      toast.error("ذخیره ناموفق بود");
+      toast.error(t.toasts.saveFailed);
     } finally {
       setSaving(false);
     }
@@ -125,14 +131,14 @@ export default function ReadingPage() {
 
   const handleDelete = async (id: number) => {
     await db.readingSessions.delete(id);
-    toast.success("حذف شد");
+    toast.success(t.toasts.deleted);
   };
 
   return (
     <div>
       <Header
-        title="Reading"
-        subtitle={`${completedSessions ?? 0}/${totalSessions ?? 0} مقاله خوانده شده`}
+        title={t.header.title}
+        subtitle={t.header.subtitle(completedSessions ?? 0, totalSessions ?? 0)}
       />
 
       <div className="p-6 space-y-5 max-w-4xl mx-auto">
@@ -140,7 +146,7 @@ export default function ReadingPage() {
         <div className="flex justify-end">
           <Button onClick={() => setDialogOpen(true)} className="gap-2">
             <Plus className="w-4 h-4" />
-            افزودن مقاله
+            {t.addArticle}
           </Button>
         </div>
 
@@ -148,17 +154,17 @@ export default function ReadingPage() {
         <div className="grid grid-cols-3 gap-4">
           <div className="rounded-xl border border-border bg-card p-4 text-center">
             <p className="text-2xl font-bold text-foreground">{totalSessions ?? 0}</p>
-            <p className="text-xs text-muted-foreground mt-1">مقاله‌های ذخیره‌شده</p>
+            <p className="text-xs text-muted-foreground mt-1">{t.stats.saved}</p>
           </div>
           <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-4 text-center">
             <p className="text-2xl font-bold text-green-400">{completedSessions ?? 0}</p>
-            <p className="text-xs text-muted-foreground mt-1">خوانده‌شده</p>
+            <p className="text-xs text-muted-foreground mt-1">{t.stats.read}</p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 text-center">
             <p className="text-2xl font-bold text-foreground">
               {(totalSessions ?? 0) - (completedSessions ?? 0)}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">برای خواندن</p>
+            <p className="text-xs text-muted-foreground mt-1">{t.stats.toRead}</p>
           </div>
         </div>
 
@@ -166,13 +172,13 @@ export default function ReadingPage() {
         {sessions?.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <FileText className="w-12 h-12 text-muted-foreground/40 mb-4" />
-            <h3 className="text-base font-medium text-foreground mb-1">هنوز مقاله‌ای ذخیره نشده</h3>
+            <h3 className="text-base font-medium text-foreground mb-1">{t.emptyState.title}</h3>
             <p className="text-sm text-muted-foreground mb-4 fa">
-              مقاله، پست وبلاگ یا هر متن انگلیسی رو ذخیره کن تا بخونی و تمرین کنی
+              {t.emptyState.description}
             </p>
             <Button onClick={() => setDialogOpen(true)} className="gap-2">
               <Plus className="w-4 h-4" />
-              اولین مقاله
+              {t.emptyState.addFirst}
             </Button>
           </div>
         ) : (
@@ -205,7 +211,7 @@ export default function ReadingPage() {
                         {format(new Date(session.createdAt), "MMM d, yyyy")}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {session.wordsCount} کلمه
+                        {t.list.wordsCount(session.wordsCount)}
                       </span>
                       {session.source && (
                         <span className="text-xs text-muted-foreground truncate max-w-24">
@@ -223,7 +229,7 @@ export default function ReadingPage() {
                       onClick={() => setReadingSession(session)}
                     >
                       <Eye className="w-3.5 h-3.5" />
-                      خواندن
+                      {t.list.read}
                     </Button>
                     <button
                       onClick={() => session.id && handleDelete(session.id)}
@@ -243,43 +249,43 @@ export default function ReadingPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>افزودن مقاله جدید</DialogTitle>
+            <DialogTitle>{t.dialog.title}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-foreground">عنوان *</label>
+              <label className="text-xs font-medium text-foreground">{t.dialog.titleLabel}</label>
               <Input
-                placeholder="عنوان مقاله..."
+                placeholder={t.dialog.titlePlaceholder}
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-foreground">منبع (اختیاری)</label>
+              <label className="text-xs font-medium text-foreground">{t.dialog.sourceLabel}</label>
               <Input
-                placeholder="وب‌سایت، کتاب، روزنامه..."
+                placeholder={t.dialog.sourcePlaceholder}
                 value={form.source}
                 onChange={(e) => setForm({ ...form, source: e.target.value })}
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-foreground">متن *</label>
+              <label className="text-xs font-medium text-foreground">{t.dialog.contentLabel}</label>
               <Textarea
-                placeholder="متن مقاله رو اینجا بچسبون..."
+                placeholder={t.dialog.contentPlaceholder}
                 value={form.content}
                 onChange={(e) => setForm({ ...form, content: e.target.value })}
                 rows={12}
                 className="font-sans text-sm leading-relaxed"
               />
               <p className="text-xs text-muted-foreground">
-                {form.content ? form.content.trim().split(/\s+/).length : 0} کلمه
+                {t.dialog.wordsCount(form.content ? form.content.trim().split(/\s+/).length : 0)}
               </p>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>انصراف</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>{t.dialog.cancel}</Button>
             <Button onClick={handleSave} disabled={saving}>
-              {saving ? "در حال ذخیره..." : "ذخیره مقاله"}
+              {saving ? t.dialog.saving : t.dialog.save}
             </Button>
           </DialogFooter>
         </DialogContent>

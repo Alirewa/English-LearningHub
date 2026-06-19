@@ -5,6 +5,7 @@ import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
 import { useMobileMenu } from "@/app/(app)/layout";
+import { common } from "@/lib/i18n/common";
 
 interface HeaderProps {
   title: string;
@@ -12,8 +13,9 @@ interface HeaderProps {
 }
 
 export function Header({ title, subtitle }: HeaderProps) {
-  const { setCommandPaletteOpen, theme, setTheme } = useAppStore();
+  const { setCommandPaletteOpen, theme, setTheme, language, setLanguage } = useAppStore();
   const openMobileMenu = useMobileMenu();
+  const t = common[language];
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -32,6 +34,10 @@ export function Header({ title, subtitle }: HeaderProps) {
     document.documentElement.classList.toggle("dark", newTheme === "dark");
   };
 
+  const toggleLanguage = () => {
+    setLanguage(language === "en" ? "fa" : "en");
+  };
+
   return (
     <header className="sticky top-0 z-10 flex items-center justify-between h-14 px-4 sm:px-6 border-b border-border bg-background/80 backdrop-blur-sm gap-3">
       <div className="flex items-center gap-3 min-w-0">
@@ -41,7 +47,7 @@ export function Header({ title, subtitle }: HeaderProps) {
           size="icon"
           className="lg:hidden w-9 h-9 shrink-0 text-muted-foreground hover:text-foreground"
           onClick={openMobileMenu}
-          aria-label="Open navigation"
+          aria-label={t.openNavigation}
         >
           <Menu className="w-5 h-5" />
         </Button>
@@ -60,7 +66,7 @@ export function Header({ title, subtitle }: HeaderProps) {
           className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-muted/50 text-muted-foreground text-xs hover:bg-muted transition-colors"
         >
           <Search className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">جستجو...</span>
+          <span className="hidden sm:inline">{t.search}</span>
           <kbd className="hidden md:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] bg-muted border border-border font-mono">
             ⌘K
           </kbd>
@@ -69,9 +75,20 @@ export function Header({ title, subtitle }: HeaderProps) {
         <Button
           variant="ghost"
           size="icon"
+          className="w-8 h-8 text-muted-foreground text-base"
+          onClick={toggleLanguage}
+          title={language === "en" ? t.switchToPersian : t.switchToEnglish}
+          aria-label={language === "en" ? t.switchToPersian : t.switchToEnglish}
+        >
+          {language === "en" ? "🇮🇷" : "🇬🇧"}
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="icon"
           className="w-8 h-8 text-muted-foreground"
           onClick={toggleTheme}
-          title="Toggle theme"
+          title={t.toggleTheme}
         >
           {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
         </Button>

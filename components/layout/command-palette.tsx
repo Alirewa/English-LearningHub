@@ -13,28 +13,35 @@ import {
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { db } from "@/lib/db";
+import { common } from "@/lib/i18n/common";
+import { nav } from "@/lib/i18n/nav";
 
-const NAV_COMMANDS = [
-  { label: "داشبورد", keywords: "dashboard", icon: LayoutDashboard, href: "/dashboard" },
-  { label: "واژگان", keywords: "vocabulary words", icon: BookOpen, href: "/vocabulary" },
-  { label: "فلش‌کارت", keywords: "flashcards", icon: CreditCard, href: "/flashcards" },
-  { label: "گرامر", keywords: "grammar", icon: GraduationCap, href: "/grammar" },
-  { label: "جملات", keywords: "sentences", icon: MessageSquare, href: "/sentences" },
-  { label: "خواندن", keywords: "reading", icon: FileText, href: "/reading" },
-  { label: "نوشتن", keywords: "writing", icon: PenLine, href: "/writing" },
-  { label: "صحبت کردن", keywords: "speaking", icon: Mic, href: "/speaking" },
-  { label: "حالت آزمون", keywords: "exam mode", icon: ClipboardList, href: "/exam" },
-  { label: "برنامه‌ریز", keywords: "planner", icon: CalendarDays, href: "/planner" },
-  { label: "ابزار هوش مصنوعی", keywords: "ai tools", icon: Sparkles, href: "/ai-tools" },
-  { label: "خروجی / ورودی داده", keywords: "export import data", icon: Database, href: "/data" },
-];
+function getNavCommands(t: typeof nav.en) {
+  return [
+    { label: t.items.dashboard, keywords: "dashboard داشبورد", icon: LayoutDashboard, href: "/dashboard" },
+    { label: t.items.vocabulary, keywords: "vocabulary words واژگان کلمات", icon: BookOpen, href: "/vocabulary" },
+    { label: t.items.flashcards, keywords: "flashcards فلش کارت", icon: CreditCard, href: "/flashcards" },
+    { label: t.items.grammar, keywords: "grammar گرامر", icon: GraduationCap, href: "/grammar" },
+    { label: t.items.sentences, keywords: "sentences جملات", icon: MessageSquare, href: "/sentences" },
+    { label: t.items.reading, keywords: "reading خواندن", icon: FileText, href: "/reading" },
+    { label: t.items.writing, keywords: "writing نوشتن", icon: PenLine, href: "/writing" },
+    { label: t.items.speaking, keywords: "speaking صحبت کردن", icon: Mic, href: "/speaking" },
+    { label: t.items.exam, keywords: "exam mode حالت آزمون", icon: ClipboardList, href: "/exam" },
+    { label: t.items.planner, keywords: "planner برنامه ریز", icon: CalendarDays, href: "/planner" },
+    { label: t.items.aiTools, keywords: "ai tools ابزار هوش مصنوعی", icon: Sparkles, href: "/ai-tools" },
+    { label: t.items.data, keywords: "export import data خروجی ورودی داده", icon: Database, href: "/data" },
+  ];
+}
 
 type WordResult = { id: number; word: string; meaning: string };
 type SentenceResult = { id: number; english: string; persian: string };
 
 export function CommandPalette() {
   const router = useRouter();
-  const { commandPaletteOpen, setCommandPaletteOpen } = useAppStore();
+  const { commandPaletteOpen, setCommandPaletteOpen, language } = useAppStore();
+  const t = common[language];
+  const navT = nav[language];
+  const NAV_COMMANDS = getNavCommands(navT);
   const [query, setQuery] = useState("");
   const [wordResults, setWordResults] = useState<WordResult[]>([]);
   const [sentenceResults, setSentenceResults] = useState<SentenceResult[]>([]);
@@ -97,27 +104,33 @@ export function CommandPalette() {
 
   const filteredNav = query
     ? NAV_COMMANDS.filter((c) =>
+        c.label.toLowerCase().includes(query.toLowerCase()) ||
         c.label.includes(query) ||
         c.keywords.toLowerCase().includes(query.toLowerCase())
       )
     : NAV_COMMANDS;
 
   return (
-    <CommandDialog open={commandPaletteOpen} onOpenChange={setCommandPaletteOpen}>
+    <CommandDialog
+      open={commandPaletteOpen}
+      onOpenChange={setCommandPaletteOpen}
+      title={t.commandPalette.title}
+      description={t.commandPalette.description}
+    >
       <CommandInput
-        placeholder="جستجو... / Search pages, words, sentences"
+        placeholder={t.commandPalette.placeholder}
         value={query}
         onValueChange={setQuery}
       />
       <CommandList>
         <CommandEmpty>
-          {searching ? "در حال جستجو..." : "نتیجه‌ای یافت نشد"}
+          {searching ? t.commandPalette.searching : t.commandPalette.noResults}
         </CommandEmpty>
 
         {/* Vocabulary word results */}
         {wordResults.length > 0 && (
           <>
-            <CommandGroup heading="Words — کلمات">
+            <CommandGroup heading={t.commandPalette.words}>
               {wordResults.map((w) => (
                 <CommandItem
                   key={`word-${w.id}`}
@@ -137,7 +150,7 @@ export function CommandPalette() {
         {/* Sentence results */}
         {sentenceResults.length > 0 && (
           <>
-            <CommandGroup heading="Sentences — جملات">
+            <CommandGroup heading={t.commandPalette.sentences}>
               {sentenceResults.map((s) => (
                 <CommandItem
                   key={`sent-${s.id}`}
@@ -154,7 +167,7 @@ export function CommandPalette() {
         )}
 
         {/* Navigation */}
-        <CommandGroup heading="Navigate — ناوبری">
+        <CommandGroup heading={t.commandPalette.navigate}>
           {filteredNav.map(({ label, icon: Icon, href }) => (
             <CommandItem key={href} onSelect={() => handleSelect(href)}>
               <Icon className="w-4 h-4 mr-2 text-muted-foreground" />

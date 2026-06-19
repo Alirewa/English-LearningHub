@@ -11,6 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, PenLine, Trash2, Clock, Edit3, X, Type } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useAppStore } from "@/lib/store";
+import { writing } from "@/lib/i18n/writing";
 
 function countWords(text: string) {
   return text.trim() ? text.trim().split(/\s+/).length : 0;
@@ -25,6 +27,8 @@ function WritingEditor({
   onClose: () => void;
   onSave: () => void;
 }) {
+  const language = useAppStore((s) => s.language);
+  const t = writing[language];
   const [title, setTitle] = useState(entry?.title ?? "");
   const [content, setContent] = useState(entry?.content ?? "");
   const [grammarNotes, setGrammarNotes] = useState(entry?.grammarNotes ?? "");
@@ -34,7 +38,7 @@ function WritingEditor({
   const wordCount = countWords(content);
 
   const handleSave = async () => {
-    if (!content.trim()) { toast.error("اول یه چیزی بنویس!"); return; }
+    if (!content.trim()) { toast.error(t.toasts.emptyContent); return; }
     setSaving(true);
     try {
       const minutes = Math.round((Date.now() - startTime) / 60000);
@@ -46,7 +50,7 @@ function WritingEditor({
           wordCount,
           updatedAt: new Date(),
         });
-        toast.success("نوشته به‌روزرسانی شد!");
+        toast.success(t.toasts.updated);
       } else {
         await db.writingEntries.add({
           title: title || `Journal ${format(new Date(), "MMM d, yyyy")}`,
@@ -67,11 +71,11 @@ function WritingEditor({
           writingMinutes: minutes,
           xpEarned: XP_REWARDS.writingEntry,
         });
-        toast.success(`+${XP_REWARDS.writingEntry} XP! نوشته ذخیره شد.`);
+        toast.success(t.toasts.saved(XP_REWARDS.writingEntry));
       }
       onSave();
     } catch {
-      toast.error("ذخیره ناموفق بود");
+      toast.error(t.toasts.saveFailed);
     } finally {
       setSaving(false);
     }
@@ -92,24 +96,24 @@ function WritingEditor({
           </Button>
           <div className="flex items-center gap-2 text-muted-foreground text-xs">
             <Type className="w-3.5 h-3.5" />
-            <span>{wordCount} کلمه</span>
+            <span>{t.editor.wordCount(wordCount)}</span>
           </div>
         </div>
         <Button onClick={handleSave} disabled={saving} size="sm">
-          {saving ? "در حال ذخیره..." : "ذخیره"}
+          {saving ? t.editor.saving : t.editor.save}
         </Button>
       </div>
 
       {/* Editor Body */}
       <div className="flex-1 overflow-y-auto p-6 max-w-3xl mx-auto w-full">
         <Input
-          placeholder="عنوان (اختیاری)"
+          placeholder={t.editor.titlePlaceholder}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="text-xl font-semibold border-none bg-transparent px-0 text-foreground placeholder:text-muted-foreground/40 focus-visible:ring-0 mb-4"
         />
         <Textarea
-          placeholder="به انگلیسی بنویس... امروز چی شد؟ به چی فکر می‌کنی؟ تمرین، کلید پیشرفته."
+          placeholder={t.editor.contentPlaceholder}
           value={content}
           onChange={(e) => setContent(e.target.value)}
           className="min-h-[50vh] border-none bg-transparent px-0 text-foreground text-base leading-relaxed placeholder:text-muted-foreground/40 focus-visible:ring-0 resize-none"
@@ -119,10 +123,10 @@ function WritingEditor({
         {/* Grammar Notes */}
         <div className="mt-8 pt-6 border-t border-border">
           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2 block">
-            یادداشت‌های گرامری — Grammar Notes
+            {t.editor.grammarNotesLabel}
           </label>
           <Textarea
-            placeholder="نکات گرامری، تصحیح‌ها یا هرچیزی که می‌خوای یادت بمونه..."
+            placeholder={t.editor.grammarNotesPlaceholder}
             value={grammarNotes}
             onChange={(e) => setGrammarNotes(e.target.value)}
             className="min-h-[120px] bg-muted/30 text-sm"
@@ -135,6 +139,8 @@ function WritingEditor({
 }
 
 export default function WritingPage() {
+  const language = useAppStore((s) => s.language);
+  const t = writing[language];
   const [editorOpen, setEditorOpen] = useState(false);
   const [editEntry, setEditEntry] = useState<WritingEntry | null>(null);
 
@@ -152,14 +158,14 @@ export default function WritingPage() {
 
   const handleDelete = async (id: number) => {
     await db.writingEntries.delete(id);
-    toast.success("نوشته حذف شد");
+    toast.success(t.toasts.deleted);
   };
 
   return (
     <div>
       <Header
-        title="Writing"
-        subtitle={`${entries?.length ?? 0} نوشته · ${totalWords ?? 0} کلمه`}
+        title={t.header.title}
+        subtitle={t.header.subtitle(entries?.length ?? 0, totalWords ?? 0)}
       />
 
       <div className="p-6 space-y-5 max-w-4xl mx-auto">
@@ -173,23 +179,23 @@ export default function WritingPage() {
             <PenLine className="w-7 h-7 text-primary" />
           </div>
           <div className="flex-1 text-center sm:text-left">
-            <h3 className="font-semibold text-foreground mb-1">دفترچه روزانه</h3>
+            <h3 className="font-semibold text-foreground mb-1">{t.cta.title}</h3>
             <p className="text-sm text-muted-foreground fa">
-              هر روز به انگلیسی بنویس تا روان‌تر بشی. حتی ۵ دقیقه هم فرق ایجاد می‌کنه.
+              {t.cta.description}
             </p>
           </div>
           <Button onClick={openNew} className="gap-2 shrink-0">
             <Plus className="w-4 h-4" />
-            نوشته جدید
+            {t.cta.newEntry}
           </Button>
         </motion.div>
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4">
           {[
-            { label: "تعداد نوشته‌ها", value: entries?.length ?? 0 },
-            { label: "مجموع کلمات", value: totalWords ?? 0 },
-            { label: "میانگین کلمات", value: entries?.length ? Math.round((totalWords ?? 0) / entries.length) : 0 },
+            { label: t.stats.entryCount, value: entries?.length ?? 0 },
+            { label: t.stats.totalWords, value: totalWords ?? 0 },
+            { label: t.stats.avgWords, value: entries?.length ? Math.round((totalWords ?? 0) / entries.length) : 0 },
           ].map(({ label, value }) => (
             <div key={label} className="rounded-xl border border-border bg-card p-4 text-center">
               <p className="text-2xl font-bold text-foreground">{value}</p>
@@ -202,11 +208,11 @@ export default function WritingPage() {
         {entries?.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <PenLine className="w-12 h-12 text-muted-foreground/40 mb-4" />
-            <h3 className="text-base font-medium text-foreground mb-1">هنوز نوشته‌ای نداری</h3>
-            <p className="text-sm text-muted-foreground mb-4 fa">سفر نوشتن انگلیسیت رو از همین امروز شروع کن</p>
+            <h3 className="text-base font-medium text-foreground mb-1">{t.empty.title}</h3>
+            <p className="text-sm text-muted-foreground mb-4 fa">{t.empty.description}</p>
             <Button onClick={openNew} className="gap-2">
               <Plus className="w-4 h-4" />
-              اولین نوشته
+              {t.empty.cta}
             </Button>
           </div>
         ) : (
@@ -244,7 +250,7 @@ export default function WritingPage() {
                   <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Type className="w-3 h-3" />
-                      {entry.wordCount} کلمه
+                      {t.entry.wordCount(entry.wordCount)}
                     </span>
                     <span className="flex items-center gap-1">
                       <Clock className="w-3 h-3" />

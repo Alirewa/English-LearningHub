@@ -13,6 +13,8 @@ import {
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { DailyStats } from "@/lib/db";
+import { useAppStore } from "@/lib/store";
+import { dashboard } from "@/lib/i18n/dashboard";
 
 const container: Variants = {
   hidden: { opacity: 0 },
@@ -85,6 +87,8 @@ function QuickAction({
 }
 
 export default function DashboardPage() {
+  const language = useAppStore((s) => s.language);
+  const t = dashboard[language];
   const [todayStats, setTodayStats] = useState<DailyStats | null>(null);
 
   useEffect(() => {
@@ -129,13 +133,13 @@ export default function DashboardPage() {
 
   const greetingHour = new Date().getHours();
   const greeting =
-    greetingHour < 12 ? "صبح بخیر" : greetingHour < 18 ? "ظهر بخیر" : "عصر بخیر";
+    greetingHour < 12 ? t.greeting.morning : greetingHour < 18 ? t.greeting.noon : t.greeting.evening;
 
   return (
     <div>
       <Header
-        title="Dashboard"
-        subtitle={`${greeting}، ${profile?.name ?? "زبان‌آموز"} 👋`}
+        title={t.title}
+        subtitle={`${greeting}، ${profile?.name ?? t.greeting.defaultName} 👋`}
       />
 
       <div className="p-6 space-y-6 max-w-6xl mx-auto">
@@ -155,7 +159,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <p className="text-3xl font-bold text-foreground">{profile?.streak ?? 0}</p>
-                <p className="text-sm text-muted-foreground">روز پیاپی</p>
+                <p className="text-sm text-muted-foreground">{t.banner.streakDays}</p>
               </div>
             </div>
 
@@ -167,7 +171,7 @@ export default function DashboardPage() {
                 <Star className="w-7 h-7 text-primary fill-primary" />
               </div>
               <div>
-                <p className="text-3xl font-bold text-foreground">سطح {profile?.level ?? 1}</p>
+                <p className="text-3xl font-bold text-foreground">{t.banner.level(profile?.level ?? 1)}</p>
                 <p className="text-sm text-muted-foreground">
                   {profile?.xp ?? 0} / {xpForNextLevel} XP
                 </p>
@@ -179,7 +183,7 @@ export default function DashboardPage() {
             {/* XP Progress */}
             <div className="flex-1">
               <div className="flex justify-between text-xs text-muted-foreground mb-2">
-                <span>تا سطح {(profile?.level ?? 1) + 1}</span>
+                <span>{t.banner.toLevel((profile?.level ?? 1) + 1)}</span>
                 <span>{Math.round(xpProgress)}%</span>
               </div>
               <div className="h-3 rounded-full bg-muted overflow-hidden">
@@ -191,7 +195,7 @@ export default function DashboardPage() {
                 />
               </div>
               <p className="text-xs text-muted-foreground mt-1.5">
-                {xpForNextLevel - (profile?.xp ?? 0)} XP تا سطح بعدی
+                {t.banner.xpToNext(xpForNextLevel - (profile?.xp ?? 0))}
               </p>
             </div>
           </div>
@@ -200,7 +204,7 @@ export default function DashboardPage() {
         {/* Today's Stats */}
         <div>
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            پیشرفت امروز
+            {t.sections.todayProgress}
           </h2>
           <motion.div
             variants={container}
@@ -210,38 +214,38 @@ export default function DashboardPage() {
           >
             <StatCard
               icon={BookOpen}
-              label="کلمات یادگرفته"
+              label={t.stats.wordsLearned}
               value={todayStats?.wordsLearned ?? 0}
               color="bg-blue-500/15 text-blue-400"
             />
             <StatCard
               icon={CreditCard}
-              label="فلش‌کارت"
+              label={t.stats.flashcards}
               value={todayStats?.flashcardsReviewed ?? 0}
               color="bg-purple-500/15 text-purple-400"
             />
             <StatCard
               icon={GraduationCap}
-              label="گرامر"
+              label={t.stats.grammar}
               value={todayStats?.grammarLessonsCompleted ?? 0}
               color="bg-green-500/15 text-green-400"
             />
             <StatCard
               icon={Clock}
-              label="خواندن"
+              label={t.stats.reading}
               value={todayStats?.readingMinutes ?? 0}
-              suffix="دقیقه"
+              suffix={t.stats.minutes}
               color="bg-yellow-500/15 text-yellow-400"
             />
             <StatCard
               icon={Zap}
-              label="XP کسب‌شده"
+              label={t.stats.xpEarned}
               value={todayStats?.xpEarned ?? 0}
               color="bg-orange-500/15 text-orange-400"
             />
             <StatCard
               icon={Target}
-              label="کارت موعددار"
+              label={t.stats.dueCards}
               value={dueFlashcards ?? 0}
               color="bg-red-500/15 text-red-400"
             />
@@ -257,7 +261,7 @@ export default function DashboardPage() {
             className="lg:col-span-2 rounded-xl border border-border bg-card p-5"
           >
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-semibold text-foreground">فعالیت هفتگی</h3>
+              <h3 className="font-semibold text-foreground">{t.sections.weeklyActivity}</h3>
               <TrendingUp className="w-4 h-4 text-muted-foreground" />
             </div>
             <div className="flex items-end gap-2 h-28">
@@ -286,17 +290,17 @@ export default function DashboardPage() {
             transition={{ delay: 0.25 }}
             className="rounded-xl border border-border bg-card p-5 space-y-4"
           >
-            <h3 className="font-semibold text-foreground">کل دوران</h3>
+            <h3 className="font-semibold text-foreground">{t.sections.allTime}</h3>
             {[
-              { label: "کل کلمات", value: totalWords ?? 0, icon: BookOpen, color: "text-blue-400" },
-              { label: "فلش‌کارت", value: totalFlashcards ?? 0, icon: CreditCard, color: "text-purple-400" },
+              { label: t.allTimeStats.totalWords, value: totalWords ?? 0, icon: BookOpen, color: "text-blue-400" },
+              { label: t.allTimeStats.flashcards, value: totalFlashcards ?? 0, icon: CreditCard, color: "text-purple-400" },
               {
-                label: "گرامر انجام‌شده",
+                label: t.allTimeStats.grammarCompleted,
                 value: `${grammarCompleted ?? 0}/${grammarTotal ?? 0}`,
                 icon: GraduationCap,
                 color: "text-green-400",
               },
-              { label: "کل XP", value: profile?.totalXp ?? 0, icon: Trophy, color: "text-yellow-400" },
+              { label: t.allTimeStats.totalXp, value: profile?.totalXp ?? 0, icon: Trophy, color: "text-yellow-400" },
             ].map(({ label, value, icon: Icon, color }) => (
               <div key={label} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -312,7 +316,7 @@ export default function DashboardPage() {
         {/* Quick Actions */}
         <div>
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            دسترسی سریع
+            {t.sections.quickAccess}
           </h2>
           <motion.div
             variants={container}
@@ -323,43 +327,43 @@ export default function DashboardPage() {
             <QuickAction
               href="/vocabulary"
               icon={Plus}
-              label="افزودن کلمه جدید"
-              description="واژگانت رو گسترش بده"
+              label={t.quickActions.addWord.label}
+              description={t.quickActions.addWord.description}
               color="bg-blue-500/15 text-blue-400"
             />
             <QuickAction
               href="/flashcards"
               icon={CreditCard}
-              label={`مرور فلش‌کارت (${dueFlashcards ?? 0} موعددار)`}
-              description="تمرین با تکرار فاصله‌دار"
+              label={t.quickActions.reviewFlashcards.label(dueFlashcards ?? 0)}
+              description={t.quickActions.reviewFlashcards.description}
               color="bg-purple-500/15 text-purple-400"
             />
             <QuickAction
               href="/grammar"
               icon={GraduationCap}
-              label="مطالعه گرامر"
-              description="یادگیری قواعد گرامری"
+              label={t.quickActions.studyGrammar.label}
+              description={t.quickActions.studyGrammar.description}
               color="bg-green-500/15 text-green-400"
             />
             <QuickAction
               href="/writing"
               icon={CreditCard}
-              label="دفترچه روزانه"
-              description="افکارت رو به انگلیسی بنویس"
+              label={t.quickActions.journal.label}
+              description={t.quickActions.journal.description}
               color="bg-yellow-500/15 text-yellow-400"
             />
             <QuickAction
               href="/speaking"
               icon={Flame}
-              label="تمرین مکالمه"
-              description="موضوع‌های تصادفی برای صحبت"
+              label={t.quickActions.speakingPractice.label}
+              description={t.quickActions.speakingPractice.description}
               color="bg-orange-500/15 text-orange-400"
             />
             <QuickAction
               href="/ai-tools"
               icon={Zap}
-              label="ابزارهای هوش مصنوعی"
-              description="بررسی گرامر، توضیح جمله"
+              label={t.quickActions.aiTools.label}
+              description={t.quickActions.aiTools.description}
               color="bg-pink-500/15 text-pink-400"
             />
           </motion.div>
@@ -374,9 +378,9 @@ export default function DashboardPage() {
             className="rounded-xl border border-border bg-card p-5"
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-foreground">کلمات اخیر</h3>
+              <h3 className="font-semibold text-foreground">{t.sections.recentWords}</h3>
               <Link href="/vocabulary" className="text-xs text-primary hover:underline">
-                مشاهده همه
+                {t.viewAll}
               </Link>
             </div>
             <div className="space-y-2">

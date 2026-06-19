@@ -9,6 +9,7 @@ interface AppState {
 
   // User preferences
   theme: "dark" | "light" | "system";
+  language: "en" | "fa";
 
   // Session state
   currentFlashcardSession: {
@@ -24,6 +25,7 @@ interface AppState {
   setCommandPaletteOpen: (open: boolean) => void;
   setActiveSection: (section: string) => void;
   setTheme: (theme: "dark" | "light" | "system") => void;
+  setLanguage: (language: "en" | "fa") => void;
   startFlashcardSession: (cardIds: number[]) => void;
   endFlashcardSession: () => void;
   advanceFlashcard: (rating: "easy" | "medium" | "hard") => void;
@@ -36,6 +38,7 @@ export const useAppStore = create<AppState>()(
       commandPaletteOpen: false,
       activeSection: "dashboard",
       theme: "dark",
+      language: "en",
       currentFlashcardSession: {
         isActive: false,
         cardIds: [],
@@ -48,6 +51,7 @@ export const useAppStore = create<AppState>()(
       setCommandPaletteOpen: (open) => set({ commandPaletteOpen: open }),
       setActiveSection: (section) => set({ activeSection: section }),
       setTheme: (theme) => set({ theme }),
+      setLanguage: (language) => set({ language }),
 
       startFlashcardSession: (cardIds) =>
         set({
@@ -86,6 +90,7 @@ export const useAppStore = create<AppState>()(
       partialize: (state) => ({
         sidebarCollapsed: state.sidebarCollapsed,
         theme: state.theme,
+        language: state.language,
       }),
     }
   )

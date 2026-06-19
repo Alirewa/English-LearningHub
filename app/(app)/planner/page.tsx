@@ -13,18 +13,11 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, CalendarDays, CheckCircle2, Circle, Trash2, BookOpen, CreditCard, GraduationCap, FileText, PenLine, Mic } from "lucide-react";
 import { toast } from "sonner";
+import { useAppStore } from "@/lib/store";
+import { planner } from "@/lib/i18n/planner";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-const DAYS_FA = ["یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنج‌شنبه", "جمعه", "شنبه"];
 const TASK_TYPES = ["vocabulary", "grammar", "reading", "writing", "speaking", "flashcards"] as const;
-const TASK_LABELS_FA: Record<string, string> = {
-  vocabulary: "واژگان",
-  grammar: "گرامر",
-  reading: "خواندن",
-  writing: "نوشتن",
-  speaking: "صحبت",
-  flashcards: "فلش‌کارت",
-};
 
 const TASK_ICONS: Record<string, React.ElementType> = {
   vocabulary: BookOpen,
@@ -45,8 +38,9 @@ const TASK_COLORS: Record<string, string> = {
 };
 
 type TaskType = typeof TASK_TYPES[number];
+type PlannerDict = typeof planner["en"];
 
-function PlanCard({ plan, onDelete }: { plan: StudyPlan; onDelete: (id: number) => void }) {
+function PlanCard({ plan, onDelete, t }: { plan: StudyPlan; onDelete: (id: number) => void; t: PlannerDict }) {
   const toggleTask = async (taskIdx: number) => {
     const tasks = plan.tasks.map((t, i) =>
       i === taskIdx ? { ...t, isCompleted: !t.isCompleted } : t
@@ -69,7 +63,7 @@ function PlanCard({ plan, onDelete }: { plan: StudyPlan; onDelete: (id: number) 
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-semibold text-foreground">{plan.name}</h3>
-          <p className="text-xs text-muted-foreground">{DAYS_FA[plan.dayOfWeek]}</p>
+          <p className="text-xs text-muted-foreground">{t.days[plan.dayOfWeek]}</p>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">{completed}/{total}</span>
@@ -125,6 +119,8 @@ function PlanCard({ plan, onDelete }: { plan: StudyPlan; onDelete: (id: number) 
 }
 
 export default function PlannerPage() {
+  const language = useAppStore((s) => s.language);
+  const t = planner[language];
   const [dialogOpen, setDialogOpen] = useState(false);
   const [planName, setPlanName] = useState("");
   const [dayOfWeek, setDayOfWeek] = useState("1");
@@ -157,7 +153,7 @@ export default function PlannerPage() {
 
   const handleSave = async () => {
     if (!planName.trim() || tasks.length === 0) {
-      toast.error("نام برنامه و حداقل یک تسک لازم است");
+      toast.error(t.toasts.missingFields);
       return;
     }
     setSaving(true);
@@ -165,16 +161,16 @@ export default function PlannerPage() {
       await db.studyPlans.add({
         name: planName.trim(),
         dayOfWeek: parseInt(dayOfWeek),
-        tasks: tasks.map((t) => ({ ...t, isCompleted: false })),
+        tasks: tasks.map((task) => ({ ...task, isCompleted: false })),
         isActive: true,
         createdAt: new Date(),
       });
-      toast.success("برنامه مطالعه ساخته شد!");
+      toast.success(t.toasts.created);
       setPlanName("");
       setTasks([]);
       setDialogOpen(false);
     } catch {
-      toast.error("ذخیره برنامه ناموفق بود");
+      toast.error(t.toasts.saveFailed);
     } finally {
       setSaving(false);
     }
@@ -182,18 +178,18 @@ export default function PlannerPage() {
 
   const handleDelete = async (id: number) => {
     await db.studyPlans.delete(id);
-    toast.success("برنامه حذف شد");
+    toast.success(t.toasts.deleted);
   };
 
   return (
     <div>
-      <Header title="Planner" subtitle="برنامه هفتگی یادگیری انگلیسیت رو بچین" />
+      <Header title={t.header.title} subtitle={t.header.subtitle} />
 
       <div className="p-6 space-y-6 max-w-4xl mx-auto">
         <div className="flex justify-end">
           <Button onClick={() => setDialogOpen(true)} className="gap-2">
             <Plus className="w-4 h-4" />
-            برنامه جدید
+            {t.newPlan}
           </Button>
         </div>
 
@@ -201,12 +197,12 @@ export default function PlannerPage() {
         {todayPlans && todayPlans.length > 0 && (
           <div>
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-              امروز ({DAYS_FA[todayDayOfWeek]})
+              {t.today(t.days[todayDayOfWeek])}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <AnimatePresence>
                 {todayPlans.map((plan) => (
-                  <PlanCard key={plan.id} plan={plan} onDelete={handleDelete} />
+                  <PlanCard key={plan.id} plan={plan} onDelete={handleDelete} t={t} />
                 ))}
               </AnimatePresence>
             </div>
@@ -220,12 +216,12 @@ export default function PlannerPage() {
           return (
             <div key={day}>
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                {DAYS_FA[dayIdx]}
+                {t.days[dayIdx]}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <AnimatePresence>
                   {dayPlans.map((plan) => (
-                    <PlanCard key={plan.id} plan={plan} onDelete={handleDelete} />
+                    <PlanCard key={plan.id} plan={plan} onDelete={handleDelete} t={t} />
                   ))}
                 </AnimatePresence>
               </div>
@@ -236,13 +232,13 @@ export default function PlannerPage() {
         {plans?.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <CalendarDays className="w-12 h-12 text-muted-foreground/40 mb-4" />
-            <h3 className="text-base font-medium text-foreground mb-1">هنوز برنامه‌ای نداری</h3>
+            <h3 className="text-base font-medium text-foreground mb-1">{t.empty.title}</h3>
             <p className="text-sm text-muted-foreground mb-4 fa">
-              یه برنامه هفتگی بساز تا منظم پیش بری
+              {t.empty.description}
             </p>
             <Button onClick={() => setDialogOpen(true)} className="gap-2">
               <Plus className="w-4 h-4" />
-              اولین برنامه
+              {t.empty.cta}
             </Button>
           </div>
         )}
@@ -251,26 +247,26 @@ export default function PlannerPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>ساخت برنامه مطالعه</DialogTitle>
+            <DialogTitle>{t.dialog.title}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-foreground">نام برنامه</label>
+              <label className="text-xs font-medium text-foreground">{t.dialog.nameLabel}</label>
               <Input
-                placeholder="مثلاً: جلسه مطالعه صبحگاهی"
+                placeholder={t.dialog.namePlaceholder}
                 value={planName}
                 onChange={(e) => setPlanName(e.target.value)}
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-foreground">روز هفته</label>
+              <label className="text-xs font-medium text-foreground">{t.dialog.dayLabel}</label>
               <Select value={dayOfWeek} onValueChange={(v) => setDayOfWeek(v ?? "1")}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {DAYS.map((day, i) => (
-                    <SelectItem key={day} value={String(i)}>{DAYS_FA[i]}</SelectItem>
+                    <SelectItem key={day} value={String(i)}>{t.days[i]}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -278,20 +274,20 @@ export default function PlannerPage() {
 
             {/* Add Task */}
             <div className="space-y-2">
-              <label className="text-xs font-medium text-foreground">تسک‌ها</label>
+              <label className="text-xs font-medium text-foreground">{t.dialog.tasksLabel}</label>
               <div className="flex gap-2">
                 <Select value={newTaskType} onValueChange={(v) => v && setNewTaskType(v as TaskType)}>
                   <SelectTrigger className="w-36">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {TASK_TYPES.map((t) => (
-                      <SelectItem key={t} value={t}>{TASK_LABELS_FA[t]}</SelectItem>
+                    {TASK_TYPES.map((taskType) => (
+                      <SelectItem key={taskType} value={taskType}>{t.taskLabels[taskType]}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 <Input
-                  placeholder="شرح تسک..."
+                  placeholder={t.dialog.taskDescPlaceholder}
                   value={newTaskDesc}
                   onChange={(e) => setNewTaskDesc(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addTask()}
@@ -320,9 +316,9 @@ export default function PlannerPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>انصراف</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>{t.dialog.cancel}</Button>
             <Button onClick={handleSave} disabled={saving}>
-              {saving ? "در حال ذخیره..." : "ساخت برنامه"}
+              {saving ? t.dialog.saving : t.dialog.create}
             </Button>
           </DialogFooter>
         </DialogContent>

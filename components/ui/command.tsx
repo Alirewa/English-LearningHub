@@ -34,8 +34,8 @@ function Command({
 }
 
 function CommandDialog({
-  title = "جستجو",
-  description = "صفحات، کلمات و جملات رو جستجو کن",
+  title = "Search",
+  description = "Search pages, words, and sentences",
   children,
   className,
   showCloseButton = false,
@@ -60,7 +60,9 @@ function CommandDialog({
         )}
         showCloseButton={showCloseButton}
       >
-        {children}
+        <Command shouldFilter={false} className="[&_[data-slot=command-input-wrapper]]:h-12">
+          {children}
+        </Command>
       </DialogContent>
     </Dialog>
   )

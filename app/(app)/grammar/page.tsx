@@ -14,6 +14,8 @@ import {
   AlertTriangle, ChevronDown, Code2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useAppStore } from "@/lib/store";
+import { grammar } from "@/lib/i18n/grammar";
 
 const CATEGORY_COLORS: Record<string, string> = {
   "Tenses":            "bg-blue-500/15 text-blue-400 border-blue-500/20",
@@ -38,6 +40,8 @@ function GrammarModal({ topic, open, onClose, onComplete }: {
   onComplete: (t: GrammarTopic) => void;
 }) {
   const [showMistakes, setShowMistakes] = useState(false);
+  const language = useAppStore((s) => s.language);
+  const t = grammar[language];
 
   if (!topic) return null;
 
@@ -62,14 +66,14 @@ function GrammarModal({ topic, open, onClose, onComplete }: {
                 className="gap-1.5 shrink-0"
               >
                 <CheckCircle2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Mark Done</span>
+                <span className="hidden sm:inline">{t.modal.markDone}</span>
                 <span className="sm:hidden">✓</span>
               </Button>
             )}
             {topic.isCompleted && (
               <span className="flex items-center gap-1.5 text-xs text-green-400 font-medium shrink-0">
                 <CheckCircle2 className="w-4 h-4 fill-green-400" />
-                Completed
+                {t.modal.completed}
               </span>
             )}
           </div>
@@ -84,7 +88,7 @@ function GrammarModal({ topic, open, onClose, onComplete }: {
           {/* Bilingual definition */}
           <div className="rounded-xl border border-border bg-card p-5 space-y-3">
             <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-              Definition — تعریف
+              {t.modal.definitionHeading}
             </h3>
             <p className="text-sm text-foreground leading-relaxed">{topic.explanation}</p>
             {"explanationFa" in topic && topic.explanationFa && (
@@ -100,7 +104,7 @@ function GrammarModal({ topic, open, onClose, onComplete }: {
               <div className="flex items-center gap-2">
                 <Code2 className="w-4 h-4 text-primary" />
                 <h3 className="text-[11px] font-semibold text-primary uppercase tracking-wider">
-                  Formula — فرمول
+                  {t.modal.formulaHeading}
                 </h3>
               </div>
               <p className="text-sm font-mono text-foreground bg-background/50 rounded-lg px-3 py-2">
@@ -118,7 +122,7 @@ function GrammarModal({ topic, open, onClose, onComplete }: {
           {"usagesFa" in topic && topic.usagesFa && (
             <div className="rounded-xl border border-border bg-card p-4">
               <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                کاربردها — Usages
+                {t.modal.usagesHeading}
               </h3>
               <p className="fa text-sm text-foreground">{topic.usagesFa}</p>
             </div>
@@ -128,7 +132,7 @@ function GrammarModal({ topic, open, onClose, onComplete }: {
           {topic.rules && topic.rules.length > 0 && (
             <div className="rounded-xl border border-border bg-card p-5">
               <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-                Rules — قوانین
+                {t.modal.rulesHeading}
               </h3>
               <ul className="space-y-3">
                 {topic.rules.map((rule, i) => (
@@ -147,7 +151,7 @@ function GrammarModal({ topic, open, onClose, onComplete }: {
           {topic.examples && topic.examples.length > 0 && (
             <div className="rounded-xl border border-border bg-card p-5">
               <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-                Examples — مثال‌ها
+                {t.modal.examplesHeading}
               </h3>
               <div className="space-y-2.5">
                 {topic.examples.map((ex, i) => (
@@ -170,7 +174,7 @@ function GrammarModal({ topic, open, onClose, onComplete }: {
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-destructive" />
                   <h3 className="text-sm font-semibold text-destructive">
-                    اشتباهات رایج — Common Mistakes
+                    {t.modal.commonMistakesHeading}
                   </h3>
                 </div>
                 <ChevronDown className={`w-4 h-4 text-destructive transition-transform ${showMistakes ? "rotate-180" : ""}`} />
@@ -200,7 +204,7 @@ function GrammarModal({ topic, open, onClose, onComplete }: {
           {"summaryFa" in topic && topic.summaryFa && (
             <div className="rounded-xl border border-border bg-muted/30 p-4">
               <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                جمع‌بندی — Summary
+                {t.modal.summaryHeading}
               </h3>
               <p className="fa text-sm text-foreground leading-loose">{topic.summaryFa}</p>
             </div>
@@ -215,6 +219,8 @@ function GrammarModal({ topic, open, onClose, onComplete }: {
 }
 
 export default function GrammarPage() {
+  const language = useAppStore((s) => s.language);
+  const t = grammar[language];
   const [selectedTopic, setSelectedTopic] = useState<GrammarTopic | null>(null);
   const [filterCat, setFilterCat] = useState<string>("all");
   const [search, setSearch] = useState("");
@@ -251,7 +257,7 @@ export default function GrammarPage() {
       });
     }
     await updateTodayStats({ grammarLessonsCompleted: 1, xpEarned: XP_REWARDS.grammarCompleted });
-    toast.success(`+${XP_REWARDS.grammarCompleted} XP! درس تموم شد.`);
+    toast.success(t.toasts.lessonCompleted(XP_REWARDS.grammarCompleted));
     setSelectedTopic({ ...topic, isCompleted: true, completedAt: new Date() });
     topics?.forEach(t => { if (t.id === topic.id) { t.isCompleted = true; t.completedAt = new Date(); } });
   };
@@ -262,13 +268,13 @@ export default function GrammarPage() {
 
   return (
     <div>
-      <Header title="Grammar Academy" subtitle={`${completedCount ?? 0}/${topics?.length ?? 0} lessons · آفلاین`} />
+      <Header title={t.header.title} subtitle={t.header.subtitle(completedCount ?? 0, topics?.length ?? 0)} />
 
       <div className="p-4 sm:p-6 space-y-4 max-w-3xl mx-auto">
         {/* Progress bar */}
         <div className="rounded-xl border border-border bg-card px-5 py-4">
           <div className="flex justify-between text-xs mb-2">
-            <span className="font-medium text-foreground">پیشرفت شما</span>
+            <span className="font-medium text-foreground">{t.progress.label}</span>
             <span className="text-muted-foreground">{completedCount ?? 0} / {topics?.length ?? 0}</span>
           </div>
           <div className="h-2 rounded-full bg-muted overflow-hidden">
@@ -280,7 +286,7 @@ export default function GrammarPage() {
             />
           </div>
           <p className="text-[11px] text-muted-foreground mt-1.5 fa">
-            {progressPct}% تکمیل شده — {(topics?.length ?? 0) - (completedCount ?? 0)} درس باقی مانده
+            {t.progress.summary(progressPct, (topics?.length ?? 0) - (completedCount ?? 0))}
           </p>
         </div>
 
@@ -288,7 +294,7 @@ export default function GrammarPage() {
         <div className="relative">
           <input
             type="text"
-            placeholder="جستجو... (FA/EN)"
+            placeholder={t.search.placeholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full rounded-lg border border-border bg-card px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
@@ -315,7 +321,7 @@ export default function GrammarPage() {
                   : "bg-muted text-muted-foreground hover:text-foreground"
               }`}
             >
-              {cat === "all" ? "همه موضوعات" : cat}
+              {cat === "all" ? t.filters.all : cat}
             </button>
           ))}
         </div>
@@ -361,7 +367,7 @@ export default function GrammarPage() {
 
           {filtered?.length === 0 && (
             <div className="text-center py-10 text-muted-foreground text-sm">
-              موردی یافت نشد
+              {t.emptyState}
             </div>
           )}
         </div>

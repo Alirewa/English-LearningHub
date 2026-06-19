@@ -8,6 +8,8 @@ import { db } from "@/lib/db";
 import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
 import { Eye, Shuffle, RotateCcw, CheckCircle2, XCircle, BookOpen, MessageSquare } from "lucide-react";
+import { useAppStore } from "@/lib/store";
+import { exam as examDict } from "@/lib/i18n/exam";
 
 type ExamMode = "words" | "sentences" | "both";
 type CardItem = { id: string; question: string; answer: string; type: "word" | "sentence" };
@@ -23,6 +25,8 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 export default function ExamPage() {
+  const language = useAppStore((s) => s.language);
+  const t = examDict[language];
   const [mode, setMode] = useState<ExamMode>("both");
   const [cards, setCards] = useState<CardItem[]>([]);
   const [index, setIndex] = useState(0);
@@ -82,7 +86,7 @@ export default function ExamPage() {
   if (!started || finished) {
     return (
       <div>
-        <Header title="Exam Mode" subtitle="Test yourself — no cheating!" />
+        <Header title={t.pageTitle} subtitle={t.pageSubtitle} />
         <div className="p-6 max-w-md mx-auto flex flex-col items-center gap-6 pt-12">
           {finished && (
             <motion.div
@@ -92,7 +96,7 @@ export default function ExamPage() {
             >
               <div className="text-4xl font-bold text-foreground">{correct}/{total}</div>
               <p className="text-sm text-muted-foreground">
-                {correct} correct · {wrong} missed
+                {t.resultsSummary(correct, wrong)}
               </p>
               <div className="h-2 rounded-full bg-muted overflow-hidden">
                 <div
@@ -102,16 +106,16 @@ export default function ExamPage() {
               </div>
               <p className="text-xs text-muted-foreground">
                 {correct / total >= 0.8
-                  ? "Excellent! Keep it up!"
+                  ? t.feedback.excellent
                   : correct / total >= 0.5
-                  ? "Good progress. Review the ones you missed."
-                  : "Keep practicing — you'll get there!"}
+                  ? t.feedback.good
+                  : t.feedback.keepPracticing}
               </p>
             </motion.div>
           )}
 
           <div className="w-full space-y-3">
-            <p className="text-sm font-medium text-foreground">What to test?</p>
+            <p className="text-sm font-medium text-foreground">{t.whatToTest}</p>
             <div className="grid grid-cols-3 gap-2">
               {(["words", "sentences", "both"] as ExamMode[]).map((m) => (
                 <button
@@ -124,7 +128,7 @@ export default function ExamPage() {
                   }`}
                 >
                   {m === "words" ? <BookOpen className="w-5 h-5" /> : m === "sentences" ? <MessageSquare className="w-5 h-5" /> : <Shuffle className="w-5 h-5" />}
-                  <span className="capitalize">{m}</span>
+                  <span className="capitalize">{t.modes[m]}</span>
                 </button>
               ))}
             </div>
@@ -134,20 +138,20 @@ export default function ExamPage() {
             {mode !== "sentences" && (
               <p className="flex items-center gap-2">
                 <BookOpen className="w-3.5 h-3.5" />
-                {vocabWords?.length ?? 0} vocabulary words available
+                {t.wordsAvailable(vocabWords?.length ?? 0)}
               </p>
             )}
             {mode !== "words" && (
               <p className="flex items-center gap-2">
                 <MessageSquare className="w-3.5 h-3.5" />
-                {sentences?.length ?? 0} sentences available
+                {t.sentencesAvailable(sentences?.length ?? 0)}
               </p>
             )}
           </div>
 
           <Button onClick={startExam} size="lg" className="w-full gap-2">
             <Shuffle className="w-4 h-4" />
-            {finished ? "Try Again" : "Start Exam"}
+            {finished ? t.tryAgain : t.startExam}
           </Button>
         </div>
       </div>
@@ -157,15 +161,15 @@ export default function ExamPage() {
   /* ── Exam screen ── */
   return (
     <div>
-      <Header title="Exam Mode" subtitle={`${index + 1} / ${total}`} />
+      <Header title={t.pageTitle} subtitle={t.progressLabel(index + 1, total)} />
 
       <div className="p-6 max-w-lg mx-auto space-y-5 pt-8">
         {/* Progress */}
         <div className="space-y-1">
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span className="text-green-400">{correct} correct</span>
+            <span className="text-green-400">{t.correctLabel(correct)}</span>
             <span>{index + 1} / {total}</span>
-            <span className="text-red-400">{wrong} missed</span>
+            <span className="text-red-400">{t.missedLabel(wrong)}</span>
           </div>
           <div className="h-1.5 rounded-full bg-muted overflow-hidden">
             <div
@@ -222,7 +226,7 @@ export default function ExamPage() {
                   className="gap-2 w-full"
                 >
                   <Eye className="w-4 h-4" />
-                  نمایش پاسخ / Show Answer
+                  {t.showAnswer}
                 </Button>
               )}
             </div>
@@ -243,14 +247,14 @@ export default function ExamPage() {
                 className="gap-2 border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50"
               >
                 <XCircle className="w-4 h-4" />
-                Missed
+                {t.missed}
               </Button>
               <Button
                 onClick={() => handleAnswer(true)}
                 className="gap-2 bg-green-600 hover:bg-green-700 text-white"
               >
                 <CheckCircle2 className="w-4 h-4" />
-                Got it!
+                {t.gotIt}
               </Button>
             </motion.div>
           )}
@@ -263,7 +267,7 @@ export default function ExamPage() {
             className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            Restart / Change mode
+            {t.restartChangeMode}
           </button>
         </div>
       </div>

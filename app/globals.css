@@ -152,6 +152,12 @@
   line-height: 1.8;
 }
 
+/* When the whole app is switched to Persian (html dir="rtl"), use Vazirmatn everywhere */
+html[dir="rtl"] body {
+  font-family: "Vazirmatn", "Tahoma", "Arial", sans-serif;
+  line-height: 1.8;
+}
+
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: oklch(0.4 0.01 264); border-radius: 3px; }

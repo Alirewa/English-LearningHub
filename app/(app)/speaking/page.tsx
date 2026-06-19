@@ -10,6 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Mic, Shuffle, Star, Clock, ChevronRight, X, Save } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useAppStore } from "@/lib/store";
+import { speaking } from "@/lib/i18n/speaking";
 
 const SPEAKING_PROMPTS = [
   { text: "Describe your hometown. What makes it special?", category: "Personal" },
@@ -47,6 +49,8 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 export default function SpeakingPage() {
+  const language = useAppStore((s) => s.language);
+  const t = speaking[language];
   const [activePrompt, setActivePrompt] = useState<(typeof SPEAKING_PROMPTS)[0] | null>(null);
   const [rating, setRating] = useState(0);
   const [notes, setNotes] = useState("");
@@ -99,12 +103,12 @@ export default function SpeakingPage() {
         xpEarned: XP_REWARDS.speakingSession,
       });
 
-      toast.success(`+${XP_REWARDS.speakingSession} XP! جلسه صحبت ذخیره شد.`);
+      toast.success(t.toasts.saved(XP_REWARDS.speakingSession));
       setActivePrompt(null);
       setRating(0);
       setNotes("");
     } catch {
-      toast.error("ذخیره جلسه ناموفق بود");
+      toast.error(t.toasts.saveFailed);
     } finally {
       setSaving(false);
     }
@@ -113,8 +117,8 @@ export default function SpeakingPage() {
   return (
     <div>
       <Header
-        title="Speaking"
-        subtitle={`${totalSessions ?? 0} جلسه انجام شده`}
+        title={t.header.title}
+        subtitle={t.header.subtitle(totalSessions ?? 0)}
       />
 
       <div className="p-6 space-y-6 max-w-5xl mx-auto">
@@ -146,18 +150,17 @@ export default function SpeakingPage() {
               </div>
 
               <div className="rounded-xl bg-muted/40 p-4 text-sm text-muted-foreground">
-                <p className="font-medium text-foreground mb-1">نکته‌ها:</p>
+                <p className="font-medium text-foreground mb-1">{t.session.tipsTitle}</p>
                 <ul className="space-y-1 list-disc list-inside fa">
-                  <li>حداقل ۲ دقیقه صحبت کن</li>
-                  <li>از واژگان و ساختارهای گرامری متنوع استفاده کن</li>
-                  <li>نگران اشتباه نباش — روی روان بودن تمرکز کن</li>
-                  <li>اگه می‌تونی صدای خودت رو ضبط کن</li>
+                  {t.session.tips.map((tip) => (
+                    <li key={tip}>{tip}</li>
+                  ))}
                 </ul>
               </div>
 
               {/* Self Evaluation */}
               <div className="space-y-3">
-                <label className="text-sm font-medium text-foreground">امتیاز عملکردت</label>
+                <label className="text-sm font-medium text-foreground">{t.session.ratingLabel}</label>
                 <div className="flex gap-2">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -178,9 +181,9 @@ export default function SpeakingPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-foreground">یادداشت و بازنگری</label>
+                <label className="text-sm font-medium text-foreground">{t.session.notesLabel}</label>
                 <Textarea
-                  placeholder="چطور پیش رفت؟ چه واژگانی استفاده کردی؟ چی رو می‌تونی بهتر کنی؟"
+                  placeholder={t.session.notesPlaceholder}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
@@ -190,11 +193,11 @@ export default function SpeakingPage() {
               <div className="flex gap-3">
                 <Button onClick={getRandomPrompt} variant="outline" className="gap-2">
                   <Shuffle className="w-4 h-4" />
-                  موضوع جدید
+                  {t.session.newPrompt}
                 </Button>
                 <Button onClick={saveSession} disabled={saving} className="gap-2 flex-1">
                   <Save className="w-4 h-4" />
-                  {saving ? "در حال ذخیره..." : "ذخیره جلسه"}
+                  {saving ? t.session.saving : t.session.saveSession}
                 </Button>
               </div>
             </motion.div>
@@ -209,13 +212,13 @@ export default function SpeakingPage() {
               <div className="w-16 h-16 rounded-2xl bg-primary/15 border border-primary/20 flex items-center justify-center mx-auto mb-4">
                 <Mic className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="font-semibold text-foreground mb-2">آماده‌ای تمرین مکالمه کنی؟</h3>
+              <h3 className="font-semibold text-foreground mb-2">{t.start.title}</h3>
               <p className="text-sm text-muted-foreground mb-5 fa">
-                یه موضوع تصادفی بگیر یا از لیست پایین یکی رو انتخاب کن
+                {t.start.description}
               </p>
               <Button onClick={getRandomPrompt} className="gap-2">
                 <Shuffle className="w-4 h-4" />
-                موضوع تصادفی
+                {t.start.randomPrompt}
               </Button>
             </motion.div>
           )}
@@ -224,7 +227,7 @@ export default function SpeakingPage() {
         {/* Prompt Library */}
         <div>
           <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            کتابخانه موضوع‌ها — Prompts
+            {t.library.title}
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {SPEAKING_PROMPTS.map((prompt, i) => (
@@ -250,7 +253,7 @@ export default function SpeakingPage() {
         {sessions && sessions.length > 0 && (
           <div>
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-              جلسه‌های اخیر — Recent
+              {t.recent.title}
             </h3>
             <div className="space-y-2">
               {sessions.map((session) => (

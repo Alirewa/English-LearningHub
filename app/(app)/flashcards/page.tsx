@@ -8,15 +8,19 @@ import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
 import { CreditCard, CheckCircle2, AlertCircle, Zap, RotateCcw, Trophy, BookOpen } from "lucide-react";
 import { toast } from "sonner";
+import { useAppStore } from "@/lib/store";
+import { flashcards } from "@/lib/i18n/flashcards";
 
 function FlashCard({
   front,
   back,
   onRate,
+  t,
 }: {
   front: string;
   back: string;
   onRate: (rating: "easy" | "medium" | "hard") => void;
+  t: (typeof flashcards)["en"];
 }) {
   const [flipped, setFlipped] = useState(false);
 
@@ -38,9 +42,9 @@ function FlashCard({
             style={{ backfaceVisibility: "hidden" }}
             className="absolute inset-0 rounded-2xl border border-border bg-card flex flex-col items-center justify-center p-8 text-center"
           >
-            <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wider">کلمه</p>
+            <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wider">{t.card.wordLabel}</p>
             <h2 className="text-3xl font-bold text-foreground">{front}</h2>
-            <p className="text-sm text-muted-foreground mt-4">برای دیدن معنی بزن</p>
+            <p className="text-sm text-muted-foreground mt-4">{t.card.flipHint}</p>
           </div>
 
           {/* Back */}
@@ -48,7 +52,7 @@ function FlashCard({
             style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
             className="absolute inset-0 rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/5 to-card flex flex-col items-center justify-center p-8 text-center"
           >
-            <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wider">معنی</p>
+            <p className="text-xs text-muted-foreground mb-3 uppercase tracking-wider">{t.card.meaningLabel}</p>
             <h2 className="text-xl font-semibold text-foreground fa">{back}</h2>
           </div>
         </motion.div>
@@ -61,7 +65,7 @@ function FlashCard({
           animate={{ opacity: 1 }}
           className="text-xs text-muted-foreground"
         >
-          روی کارت بزن تا برگرده
+          {t.flipHintBelow}
         </motion.p>
       )}
 
@@ -80,7 +84,7 @@ function FlashCard({
               className="flex-1 border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50 gap-2"
             >
               <AlertCircle className="w-4 h-4" />
-              سخت
+              {t.rating.hard}
             </Button>
             <Button
               onClick={() => onRate("medium")}
@@ -88,7 +92,7 @@ function FlashCard({
               className="flex-1 border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10 hover:border-yellow-500/50 gap-2"
             >
               <RotateCcw className="w-4 h-4" />
-              متوسط
+              {t.rating.medium}
             </Button>
             <Button
               onClick={() => onRate("easy")}
@@ -96,7 +100,7 @@ function FlashCard({
               className="flex-1 border-green-500/30 text-green-400 hover:bg-green-500/10 hover:border-green-500/50 gap-2"
             >
               <CheckCircle2 className="w-4 h-4" />
-              آسان
+              {t.rating.easy}
             </Button>
           </motion.div>
         )}
@@ -106,6 +110,8 @@ function FlashCard({
 }
 
 export default function FlashcardsPage() {
+  const language = useAppStore((s) => s.language);
+  const t = flashcards[language];
   const [sessionActive, setSessionActive] = useState(false);
   const [sessionCards, setSessionCards] = useState<Array<{ id: number; front: string; back: string; interval: number; repetitions: number; easeFactor: number }>>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -180,7 +186,7 @@ export default function FlashcardsPage() {
         flashcardsReviewed: sessionCards.length,
         xpEarned: sessionCards.length * XP_REWARDS.flashcardReviewed,
       });
-      toast.success(`جلسه تمام شد! +${sessionCards.length * XP_REWARDS.flashcardReviewed} XP`);
+      toast.success(t.toasts.sessionComplete(sessionCards.length * XP_REWARDS.flashcardReviewed));
     } else {
       setCurrentIdx(currentIdx + 1);
     }
@@ -196,13 +202,13 @@ export default function FlashcardsPage() {
 
     return (
       <div>
-        <Header title="مرور فلش‌کارت" />
+        <Header title={t.session.title} />
         <div className="p-6 max-w-2xl mx-auto">
           {/* Progress */}
           <div className="mb-8">
             <div className="flex justify-between text-sm text-muted-foreground mb-2">
               <span>{currentIdx + 1} / {sessionCards.length}</span>
-              <span>{Math.round(progress)}% انجام شد</span>
+              <span>{t.session.percentDone(Math.round(progress))}</span>
             </div>
             <div className="h-2 rounded-full bg-muted overflow-hidden">
               <motion.div
@@ -223,6 +229,7 @@ export default function FlashcardsPage() {
             front={current.front}
             back={current.back}
             onRate={handleRate}
+            t={t}
           />
 
           <Button
@@ -233,7 +240,7 @@ export default function FlashcardsPage() {
               setSessionDone(false);
             }}
           >
-            پایان جلسه
+            {t.session.endSession}
           </Button>
         </div>
       </div>
@@ -243,7 +250,7 @@ export default function FlashcardsPage() {
   if (sessionDone) {
     return (
       <div>
-        <Header title="جلسه تمام شد!" />
+        <Header title={t.sessionDone.title} />
         <div className="p-6 max-w-lg mx-auto text-center">
           <motion.div
             initial={{ scale: 0 }}
@@ -254,23 +261,23 @@ export default function FlashcardsPage() {
             <Trophy className="w-10 h-10 text-primary" />
           </motion.div>
 
-          <h2 className="text-2xl font-bold text-foreground mb-2">آفرین!</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-2">{t.sessionDone.congrats}</h2>
           <p className="text-muted-foreground mb-8">
-            {sessionCards.length} کارت مرور کردی
+            {t.sessionDone.cardsReviewed(sessionCards.length)}
           </p>
 
           <div className="grid grid-cols-3 gap-4 mb-8">
             <div className="rounded-xl border border-green-500/20 bg-green-500/10 p-4">
               <p className="text-2xl font-bold text-green-400">{easyCount}</p>
-              <p className="text-xs text-green-400/70 mt-1">آسان</p>
+              <p className="text-xs text-green-400/70 mt-1">{t.sessionDone.easy}</p>
             </div>
             <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/10 p-4">
               <p className="text-2xl font-bold text-yellow-400">{mediumCount}</p>
-              <p className="text-xs text-yellow-400/70 mt-1">متوسط</p>
+              <p className="text-xs text-yellow-400/70 mt-1">{t.sessionDone.medium}</p>
             </div>
             <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-4">
               <p className="text-2xl font-bold text-red-400">{hardCount}</p>
-              <p className="text-xs text-red-400/70 mt-1">سخت</p>
+              <p className="text-xs text-red-400/70 mt-1">{t.sessionDone.hard}</p>
             </div>
           </div>
 
@@ -280,11 +287,11 @@ export default function FlashcardsPage() {
               className="flex-1"
               onClick={() => setSessionActive(false)}
             >
-              بازگشت
+              {t.sessionDone.back}
             </Button>
             {(dueCards?.length ?? 0) > 0 && (
               <Button className="flex-1" onClick={startDueSession}>
-                مرور بیشتر
+                {t.sessionDone.reviewMore}
               </Button>
             )}
           </div>
@@ -296,8 +303,8 @@ export default function FlashcardsPage() {
   return (
     <div>
       <Header
-        title="Flashcards"
-        subtitle={`${totalCards ?? 0} کارت · ${dueCards?.length ?? 0} برای امروز`}
+        title={t.pageTitle}
+        subtitle={t.subtitle(totalCards ?? 0, dueCards?.length ?? 0)}
       />
 
       <div className="p-6 space-y-6 max-w-4xl mx-auto">
@@ -305,32 +312,32 @@ export default function FlashcardsPage() {
         <div className="grid grid-cols-3 gap-4">
           <div className="rounded-xl border border-border bg-card p-4 text-center">
             <p className="text-2xl font-bold text-foreground">{totalCards ?? 0}</p>
-            <p className="text-xs text-muted-foreground mt-1">کل کارت‌ها</p>
+            <p className="text-xs text-muted-foreground mt-1">{t.home.stats.totalCards}</p>
           </div>
           <div className="rounded-xl border border-orange-500/20 bg-orange-500/5 p-4 text-center">
             <p className="text-2xl font-bold text-orange-400">{dueCards?.length ?? 0}</p>
-            <p className="text-xs text-muted-foreground mt-1">برای امروز</p>
+            <p className="text-xs text-muted-foreground mt-1">{t.home.stats.dueToday}</p>
           </div>
           <div className="rounded-xl border border-border bg-card p-4 text-center">
             <p className="text-2xl font-bold text-foreground">
               {(totalCards ?? 0) - (dueCards?.length ?? 0)}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">یاد گرفته‌شده</p>
+            <p className="text-xs text-muted-foreground mt-1">{t.home.stats.learned}</p>
           </div>
         </div>
 
         {/* Session Start */}
         <div className="rounded-2xl border border-border bg-card p-6">
-          <h3 className="font-semibold text-foreground mb-1">شروع جلسه مطالعه</h3>
+          <h3 className="font-semibold text-foreground mb-1">{t.home.startSession.title}</h3>
           <p className="text-sm text-muted-foreground mb-5 fa">
-            با تکرار فاصله‌دار فلش‌کارت‌هات رو تمرین کن
+            {t.home.startSession.description}
           </p>
 
           {totalCards === 0 ? (
             <div className="text-center py-8">
               <CreditCard className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
               <p className="text-sm text-muted-foreground fa">
-                کلمه اضافه کن تا فلش‌کارت خودکار ساخته بشه
+                {t.home.startSession.emptyDescription}
               </p>
             </div>
           ) : (
@@ -341,7 +348,7 @@ export default function FlashcardsPage() {
                 className="flex-1 gap-2"
               >
                 <Zap className="w-4 h-4" />
-                مرور کارت‌های امروز ({dueCards?.length ?? 0})
+                {t.home.startSession.reviewDue(dueCards?.length ?? 0)}
               </Button>
               <Button
                 onClick={startAllSession}
@@ -350,7 +357,7 @@ export default function FlashcardsPage() {
                 className="flex-1 gap-2"
               >
                 <BookOpen className="w-4 h-4" />
-                تمرین همه کارت‌ها
+                {t.home.startSession.practiceAll}
               </Button>
             </div>
           )}
@@ -359,7 +366,7 @@ export default function FlashcardsPage() {
         {/* Card List */}
         {allCards && allCards.length > 0 && (
           <div className="rounded-xl border border-border bg-card p-5">
-            <h3 className="font-semibold text-foreground mb-4">فلش‌کارت‌های اخیر</h3>
+            <h3 className="font-semibold text-foreground mb-4">{t.home.recentCards}</h3>
             <div className="space-y-2">
               {allCards.map((card) => (
                 <div
@@ -386,7 +393,7 @@ export default function FlashcardsPage() {
                       </span>
                     )}
                     <span className="text-[10px] text-muted-foreground">
-                      {new Date(card.nextReviewDate) <= new Date() ? "موعد" : `${card.interval} روز دیگه`}
+                      {new Date(card.nextReviewDate) <= new Date() ? t.home.due : t.home.daysLeft(card.interval)}
                     </span>
                   </div>
                 </div>
