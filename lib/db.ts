@@ -31,6 +31,19 @@ export interface Flashcard {
   createdAt: Date;
 }
 
+export interface GrammarSubtopic {
+  id: string;            // stable slug, e.g. "zero", "first", "mixed1"
+  title: string;         // English title, e.g. "Zero Conditional"
+  titleFa: string;       // Persian title
+  tagline: string;       // short English hook, e.g. "Always true"
+  taglineFa: string;     // short Persian hook
+  formula: string;       // e.g. "If + Present → Present"
+  explanationFa: string; // Persian explanation of when/why to use it
+  examples: string[];    // English example sentences
+  examplesFa?: string[]; // Persian translations of the examples (same order)
+  tipFa?: string;        // a trick / mnemonic note
+}
+
 export interface GrammarTopic {
   id?: number;
   title: string;         // English title
@@ -46,7 +59,9 @@ export interface GrammarTopic {
   examples: string[];    // Examples
   commonMistakes: string[];
   summaryFa: string;     // Persian summary
+  subtopics?: GrammarSubtopic[]; // optional tabbed breakdown (e.g. the 6 conditional types)
   notes?: string;
+  isPinned: boolean;
   isCompleted: boolean;
   completedAt?: Date;
   createdAt: Date;
@@ -189,6 +204,14 @@ class EnglishHubDB extends Dexie {
       userProfile: "++id",
       flashcardReviewLogs: "++id, flashcardId, reviewedAt",
     });
+
+    this.version(2).stores({
+      grammarTopics: "++id, category, isCompleted, isPinned",
+    }).upgrade((tx) =>
+      tx.table("grammarTopics").toCollection().modify((topic) => {
+        if (topic.isPinned === undefined) topic.isPinned = false;
+      })
+    );
   }
 }
 
@@ -221,6 +244,7 @@ const GRAMMAR_TOPICS_DATA: Omit<GrammarTopic, "id">[] = [
       "❌ The cat licked it's paw → ✅ its paw",
     ],
     summaryFa: "صفات ملکی همیشه به یک اسم می‌چسبند؛ ضمایر ملکی جانشین اسم می‌شوند. دقت به تفاوت its و it's در آیلتس حیاتی است.",
+    isPinned: false,
     isCompleted: false,
     createdAt: new Date(),
   },
@@ -249,6 +273,7 @@ const GRAMMAR_TOPICS_DATA: Omit<GrammarTopic, "id">[] = [
       "❌ much books → ✅ many books",
     ],
     summaryFa: "همیشه به حروف تعریفی مثل a/an نیاز دارند. برای تعداد زیاد از many و تعداد کم از a few استفاده می‌کنیم.",
+    isPinned: false,
     isCompleted: false,
     createdAt: new Date(),
   },
@@ -278,6 +303,7 @@ const GRAMMAR_TOPICS_DATA: Omit<GrammarTopic, "id">[] = [
       "❌ many advices → ✅ much advice",
     ],
     summaryFa: "هرگز جمع بسته نمی‌شوند و فعل آن‌ها مفرد است. اطلاعات، اخبار، مبلمان همیشه غیرقابل شمارش‌اند.",
+    isPinned: false,
     isCompleted: false,
     createdAt: new Date(),
   },
@@ -306,6 +332,7 @@ const GRAMMAR_TOPICS_DATA: Omit<GrammarTopic, "id">[] = [
       "❌ She is haveing fun → ✅ She is having fun",
     ],
     summaryFa: "مناسب برای موقعیت‌های موقتی و روندهای در حال تغییر. افعال ذهنی در این ساختار جای ندارند.",
+    isPinned: false,
     isCompleted: false,
     createdAt: new Date(),
   },
@@ -334,6 +361,7 @@ const GRAMMAR_TOPICS_DATA: Omit<GrammarTopic, "id">[] = [
       "❌ She will goes → ✅ She will go",
     ],
     summaryFa: "برای برنامه‌های از پیش تعیین شده مناسب نیست. فعل اصلی بدون هیچ پسوندی استفاده می‌شود.",
+    isPinned: false,
     isCompleted: false,
     createdAt: new Date(),
   },
@@ -362,6 +390,7 @@ const GRAMMAR_TOPICS_DATA: Omit<GrammarTopic, "id">[] = [
       "❌ Does she works? → ✅ Does she work?",
     ],
     summaryFa: "در جملات مثبت حتماً به فعل سوم شخص مفرد s/es اضافه کنید. در حالت منفی و سوالی فعل ساده می‌آید.",
+    isPinned: false,
     isCompleted: false,
     createdAt: new Date(),
   },
@@ -390,6 +419,7 @@ const GRAMMAR_TOPICS_DATA: Omit<GrammarTopic, "id">[] = [
       "❌ I did not went → ✅ I did not go",
     ],
     summaryFa: "ارتباطی با زمان حال ندارد. نشانه زمانی (مثل دیروز، last year) کلید تشخیص آن است.",
+    isPinned: false,
     isCompleted: false,
     createdAt: new Date(),
   },
@@ -418,6 +448,7 @@ const GRAMMAR_TOPICS_DATA: Omit<GrammarTopic, "id">[] = [
       "❌ I don't never lie → ✅ I never lie",
     ],
     summaryFa: "جایگاه درست آن‌ها قبل از فعل اصلی و بعد از افعال To be است.",
+    isPinned: false,
     isCompleted: false,
     createdAt: new Date(),
   },
@@ -446,6 +477,7 @@ const GRAMMAR_TOPICS_DATA: Omit<GrammarTopic, "id">[] = [
       "❌ She wants go → ✅ She wants to go",
     ],
     summaryFa: "برای نشان دادن هدف عالی است. برای منفی کردن مستقیماً not قبل از to می‌آید.",
+    isPinned: false,
     isCompleted: false,
     createdAt: new Date(),
   },
@@ -474,6 +506,7 @@ const GRAMMAR_TOPICS_DATA: Omit<GrammarTopic, "id">[] = [
       "❌ She musts go → ✅ She must go",
     ],
     summaryFa: "خودشان فعل کمکی هستند و نیازی به do/does ندارند. بهترین ساختار برای دادن پیشنهاد در آیلتس.",
+    isPinned: false,
     isCompleted: false,
     createdAt: new Date(),
   },
@@ -502,6 +535,7 @@ const GRAMMAR_TOPICS_DATA: Omit<GrammarTopic, "id">[] = [
       "❌ He was know the answer → ✅ He knew (stative verb)",
     ],
     summaryFa: "برای تصویرسازی پس‌زمینه داستان در گذشته عالی است.",
+    isPinned: false,
     isCompleted: false,
     createdAt: new Date(),
   },
@@ -530,6 +564,7 @@ const GRAMMAR_TOPICS_DATA: Omit<GrammarTopic, "id">[] = [
       "❌ I have went there → ✅ I have gone there",
     ],
     summaryFa: "تمرکز روی نتیجه در زمان حال است، نه زمان دقیق انجام کار.",
+    isPinned: false,
     isCompleted: false,
     createdAt: new Date(),
   },
@@ -537,27 +572,158 @@ const GRAMMAR_TOPICS_DATA: Omit<GrammarTopic, "id">[] = [
     title: "Conditionals",
     titleFa: "جملات شرطی",
     category: "Conditionals",
-    explanation: "Conditional sentences express cause and effect or hypothetical situations. Three main types.",
-    explanationFa: "دارای بخش شرط (If) و بخش نتیجه. سه نوع اصلی دارند.",
-    usagesFa: "نوع اول (واقعی)، نوع دوم (خیالی در حال)، نوع سوم (حسرت گذشته).",
-    formula: "Type 1: If + present → will | Type 2: If + past → would | Type 3: If + past perfect → would have + V3",
-    formulaFa: "نوع ۱ (حال ساده + آینده ساده)، نوع ۲ (گذشته ساده + would).",
-    keyNotesFa: "فعل آینده ساز (will/would) هرگز بلافاصله بعد از if نمی‌آید.",
+    explanation: "Conditional sentences express cause and effect, real possibilities, or hypothetical/unreal situations. There are six types: Zero, First, Second, Third, and two Mixed conditionals. Each type uses a different combination of tenses in the if-clause and the result-clause, and that combination tells you how real or unreal the situation is.",
+    explanationFa: "هر جمله شرطی از دو بخش تشکیل شده: بخش شرط (If) و بخش نتیجه. هر چی فعل توی جمله شرطی‌تر (به گذشته‌تر) برود، جمله غیرواقعی‌تر و خیالی‌تر می‌شود. شش نوع اصلی داریم: صفر، اول، دوم، سوم، و دو نوع میکس (ترکیبی).",
+    usagesFa: "Zero برای قانون و حقیقت علمی/طبیعی همیشه‌صادق، First برای آینده‌ی ممکن (۵۰/۵۰)، Second برای آرزو/محال در زمان حال، Third برای حسرت و پشیمانی در گذشته (دیگه دیر شده)، Mixed 1 برای اشتباه گذشته‌ای که روی حال اثر گذاشته، Mixed 2 برای وضعیت الان که باعث از دست رفتن یک فرصت در گذشته شده. برای جزئیات کامل هر کدوم، تب مربوطه رو باز کن.",
+    formula: "Zero: If+Present→Present | First: If+Present→will+V1 | Second: If+Past→would+V1 | Third: If+Past Perfect→would have+V3 | Mixed1: If+Past Perfect→would+V1 | Mixed2: If+Past→would have+V3",
+    formulaFa: "🧠 ترفند: هر چی فعل به گذشته‌تر برود → جمله غیرواقعی‌تر می‌شود.\nZero → Present | Present\nFirst → Present | will\nSecond → Past | would\nThird → had+V3 | would have\nMixed1 → had+V3 | would (نتیجه‌اش الانه)\nMixed2 → Past | would have (نتیجه‌اش قبلاً بوده)",
+    keyNotesFa: "فعل آینده‌ساز (will/would) هرگز بلافاصله بعد از if نمی‌آید. در شرطی نوع دوم برای فعل to be همیشه were به کار می‌رود (were برای همه، نه was). اگر جمله با If شروع شود، وسط جمله یک ویرگول لازم است.",
     rules: [
-      "Type 1 (real): If + present simple, will + infinitive",
-      "Type 2 (unreal present): If + past simple, would + infinitive",
-      "Type 3 (unreal past): If + past perfect, would have + past participle",
+      "Zero (real/always true): If + present simple, present simple — scientific facts and rules that are always true.",
+      "First (real future): If + present simple, will + infinitive — a realistic future possibility (50/50).",
+      "Second (unreal present): If + past simple, would + infinitive — a wish or impossible situation right now; always use 'were', never 'was'.",
+      "Third (unreal past): If + past perfect, would have + past participle — regret about something that didn't happen in the past.",
+      "Mixed 1 (past → now): If + past perfect, would + infinitive — a past mistake/condition that affects the present result.",
+      "Mixed 2 (now → past): If + past simple, would have + past participle — a present trait/state that caused a missed opportunity in the past.",
     ],
     examples: [
-      "If it rains, I will stay home. (Type 1)",
-      "If I had a car, I would drive to work. (Type 2)",
-      "If I had studied harder, I would have passed. (Type 3)",
+      "If you heat water, it boils. (Zero)",
+      "If it rains, I will stay home. (First)",
+      "If I were rich, I would travel the world. (Second)",
+      "If I had studied harder, I would have passed. (Third)",
+      "If I had studied medicine, I would be a doctor now. (Mixed 1)",
+      "If I were braver, I would have asked her out. (Mixed 2)",
     ],
     commonMistakes: [
-      "❌ If I will come → ✅ If I come (no will in if-clause)",
+      "❌ If I will come → ✅ If I come (no will in the if-clause)",
       "❌ If I would have time → ✅ If I had time",
+      "❌ If I was rich → ✅ If I were rich (always 'were' in conditional 2)",
+      "❌ If I have studied, I would have passed → ✅ If I had studied, I would have passed",
     ],
-    summaryFa: "اگر جمله با If شروع شود ویرگول در وسط الزامی است.",
+    summaryFa: "اگر جمله با If شروع شود ویرگول در وسط الزامی است. برای تشخیص نوع شرطی، فقط به فعل توی بخش if دقت کن: حال ساده=Zero/First (با will مشخص می‌شن)، گذشته ساده=Second یا نیمی از Mixed 2، گذشته کامل (had+V3)=Third یا نیمی از Mixed 1.",
+    subtopics: [
+      {
+        id: "zero",
+        title: "Zero Conditional",
+        titleFa: "شرطی نوع صفر",
+        tagline: "Science & nature — always true",
+        taglineFa: "علم و طبیعت — همیشه درست",
+        formula: "If + Present → Present",
+        explanationFa: "وقتی قراره یک قاعده یا قانونی گفته بشه که همیشه صادق و برقراره — قانون طبیعت، علم، یا حقیقت ثابت. هیچ ابهامی توش نیست، همیشه همینطوریه.",
+        examples: [
+          "If you heat water, it boils.",
+          "If you don't sleep, you feel tired.",
+          "If you mix red and blue, you get purple.",
+        ],
+        examplesFa: [
+          "اگه آب رو گرم کنی، می‌جوشه.",
+          "اگه نخوابی، احساس خستگی می‌کنی.",
+          "اگه قرمز و آبی رو مخلوط کنی، بنفش به‌دست می‌آد.",
+        ],
+        tipFa: "هر دو طرف جمله حال ساده‌اند — هیچ will/would ای در کار نیست.",
+      },
+      {
+        id: "first",
+        title: "First Conditional",
+        titleFa: "شرطی نوع اول",
+        tagline: "Maybe it happens — real future",
+        taglineFa: "شاید بشه — آینده‌ی واقعی و ممکن",
+        formula: "If + Present → will + V1",
+        explanationFa: "از الان به بعد هست و رو به آینده مطرح می‌شه. این یعنی ۵۰/۵۰ هست — ممکنه بشه یا نشه. یک شرط واقعی و قابل‌وقوع برای آینده.",
+        examples: [
+          "If it rains, I will stay home.",
+          "If you study hard, you will pass.",
+          "If she calls, I will tell her the news.",
+        ],
+        examplesFa: [
+          "اگه بارون بیاد، خونه می‌مونم.",
+          "اگه سخت درس بخونی، قبول می‌شی.",
+          "اگه اون زنگ بزنه، خبر رو به‌ش می‌گم.",
+        ],
+        tipFa: "if-clause حال ساده‌ست (هرگز will نمی‌گیره)، نتیجه با will + فعل ساده می‌آد.",
+      },
+      {
+        id: "second",
+        title: "Second Conditional",
+        titleFa: "شرطی نوع دوم",
+        tagline: "Wish / impossible now",
+        taglineFa: "آرزو / محال — خلاف واقعیت الان",
+        formula: "If + Past → would + V1",
+        explanationFa: "از الان به بعد هست و رو به آینده هست، اما محاله — یک آرزوست و شدنی نیست. خلاف وضعیت الانه. مثال: «سرم درد می‌کنه، اگه سرم درد نمی‌کرد باهات می‌اومدم» → If I didn't have a headache, I would come with you. یا: «اگه ماشین داشتم تو رو می‌رسوندم» → خلاف الانه، ماشین ندارم.",
+        examples: [
+          "If I were rich, I would travel the world.",
+          "If I lived in LA, I would go to the beach every day.",
+          "If I didn't have a headache, I would come with you.",
+        ],
+        examplesFa: [
+          "اگه پولدار بودم، دنیا رو می‌گشتم. (پولدار نیستم)",
+          "اگه توی لس‌آنجلس زندگی می‌کردم، هر روز می‌رفتم ساحل. (زندگی نمی‌کنم)",
+          "اگه سرم درد نمی‌کرد، باهات می‌اومدم. (سرم درد می‌کنه)",
+        ],
+        tipFa: "کلید این نوع: 'were' برای همه‌ی ضمایر به کار می‌ره (نه was) — If I were / If he were.",
+      },
+      {
+        id: "third",
+        title: "Third Conditional",
+        titleFa: "شرطی نوع سوم",
+        tagline: "Regret — too late now",
+        taglineFa: "حسرت / دیگه دیره",
+        formula: "If + Past Perfect → would have + V3",
+        explanationFa: "تنها شرطی که می‌ره به گذشته و حسرت و پشیمونی رو می‌رسونه — فاز پشیمانی توی شرطی نوع سوم اجباریه. مثال: «اگه بیشتر درس خونده بودم» یعنی زیاد نخوندم، خلاف گذشته است و دیگه قابل تغییر نیست.",
+        examples: [
+          "If I had studied, I would have passed.",
+          "If I had left earlier, I would have caught the train.",
+          "If I had studied harder, I would have passed the exam.",
+        ],
+        examplesFa: [
+          "اگه درس خونده بودم، قبول می‌شدم. (نخوندم و رد شدم)",
+          "اگه زودتر می‌رفتم، قطار رو می‌رسیدم. (دیر رفتم و قطار رو از دست دادم)",
+          "اگه بیشتر درس خونده بودم، امتحان رو قبول می‌شدم. (حسرت گذشته)",
+        ],
+        tipFa: "هر دو فعل به گذشته‌ترین حالت ممکن رفته‌اند (had+V3 و would have+V3) — یعنی کاملاً غیرواقعی و تمام‌شده.",
+      },
+      {
+        id: "mixed1",
+        title: "Mixed Conditional 1",
+        titleFa: "شرطی میکس ۱",
+        tagline: "Past mistake → present result",
+        taglineFa: "گذشته ← الان (نتیجه‌اش رو الان می‌بینی)",
+        formula: "If + Past Perfect → would + V1",
+        explanationFa: "بین گذشته و حال می‌چرخه: یک اشتباه یا شرایط قدیمی که عواقبش رو الان داری می‌بینی. شرط مربوط به گذشته است (had+V3) ولی نتیجه مربوط به الان است (would + فعل ساده).",
+        examples: [
+          "If I had studied medicine, I would be a doctor now.",
+          "If I had saved money, I would be rich today.",
+          "If I hadn't quit my job, I would be a manager now.",
+        ],
+        examplesFa: [
+          "اگه پزشکی خونده بودم، الان دکتر بودم. (نخوندم، نتیجه‌اش رو الان می‌بینم)",
+          "اگه پول پس‌انداز کرده بودم، الان پولدار بودم.",
+          "اگه از کارم استعفا نداده بودم، الان مدیر بودم.",
+        ],
+        tipFa: "If + had + V3 (گذشته) ... would + فعل ساده (الان) — نوع 2 از نگاه ساختار: simple past + past perfect که یکی به if میره یکی به نتیجه.",
+      },
+      {
+        id: "mixed2",
+        title: "Mixed Conditional 2",
+        titleFa: "شرطی میکس ۲",
+        tagline: "Present trait → past missed chance",
+        taglineFa: "الان ← گذشته (یه فرصت گذشته رو از دست دادی)",
+        formula: "If + Past → would have + V3",
+        explanationFa: "وضع الانت همینه (یک ویژگی یا شرایط ثابت در حال)، و همین ویژگی باعث شده یه فرصتی رو توی گذشته از دست بدی. شرط مربوط به الان است (Past ساده، مثل Second) ولی نتیجه مربوط به گذشته است (would have + V3).",
+        examples: [
+          "If I were braver, I would have asked her out.",
+          "If I were smarter, I would have chosen a better major.",
+          "If I weren't so shy, I would have spoken up in the meeting.",
+        ],
+        examplesFa: [
+          "اگه شجاع‌تر بودم، از اون درخواست می‌کردم. (الان هم شجاع نیستم، آن موقع هم نخواستم)",
+          "اگه باهوش‌تر بودم، رشته‌ی بهتری انتخاب می‌کردم.",
+          "اگه اینقدر خجالتی نبودم، توی جلسه حرف می‌زدم.",
+        ],
+        tipFa: "If + Past (الان) ... would have + V3 (گذشته) — دقیقاً برعکس میکس ۱ از نظر مسیر زمان.",
+      },
+    ],
+    isPinned: false,
     isCompleted: false,
     createdAt: new Date(),
   },
@@ -586,6 +752,7 @@ const GRAMMAR_TOPICS_DATA: Omit<GrammarTopic, "id">[] = [
       "❌ She is smart but however honest → only one connector needed",
     ],
     summaryFa: "گذاشتن یک ویرگول دقیقاً قبل از کلمه ربط دهنده الزامی است.",
+    isPinned: false,
     isCompleted: false,
     createdAt: new Date(),
   },
@@ -614,6 +781,7 @@ const GRAMMAR_TOPICS_DATA: Omit<GrammarTopic, "id">[] = [
       "❌ He plays the football → ✅ He plays football (sports: no article)",
     ],
     summaryFa: "برای مفاهیم کلی (تکنولوژی) نباید حرف تعریفی آورد (Zero Article).",
+    isPinned: false,
     isCompleted: false,
     createdAt: new Date(),
   },
@@ -642,6 +810,7 @@ const GRAMMAR_TOPICS_DATA: Omit<GrammarTopic, "id">[] = [
       "❌ at the morning → ✅ in the morning",
     ],
     summaryFa: "حفظ کردن حروف اضافه اختصاصی که با افعال می‌آیند (مثل depends on) برای رایتینگ ضروری است.",
+    isPinned: false,
     isCompleted: false,
     createdAt: new Date(),
   },
@@ -670,6 +839,7 @@ const GRAMMAR_TOPICS_DATA: Omit<GrammarTopic, "id">[] = [
       "❌ the most fastest → ✅ the fastest",
     ],
     summaryFa: "شکل بی‌قاعده کلمات (good → better → best) باید حفظ شود.",
+    isPinned: false,
     isCompleted: false,
     createdAt: new Date(),
   },
@@ -698,6 +868,7 @@ const GRAMMAR_TOPICS_DATA: Omit<GrammarTopic, "id">[] = [
       "❌ The woman that, I met her, is nice → ✅ The woman that I met is nice",
     ],
     summaryFa: "ابزاری عالی برای پیچیده کردن جملات؛ that برای جمله‌واره‌های غیرضروری (بین دو ویرگول) استفاده نمی‌شود.",
+    isPinned: false,
     isCompleted: false,
     createdAt: new Date(),
   },
@@ -726,6 +897,7 @@ const GRAMMAR_TOPICS_DATA: Omit<GrammarTopic, "id">[] = [
       "❌ Because of she was late, → ✅ Because she was late,",
     ],
     summaryFa: "اگر جمله با کلمه ربط شروع شود، ویرگول در وسط الزامی است.",
+    isPinned: false,
     isCompleted: false,
     createdAt: new Date(),
   },
@@ -754,6 +926,7 @@ const GRAMMAR_TOPICS_DATA: Omit<GrammarTopic, "id">[] = [
       "❌ It was builded → ✅ It was built",
     ],
     summaryFa: "برای رایتینگ تسک ۱ (Process) به شدت کاربردی است.",
+    isPinned: false,
     isCompleted: false,
     createdAt: new Date(),
   },
@@ -782,19 +955,34 @@ const GRAMMAR_TOPICS_DATA: Omit<GrammarTopic, "id">[] = [
       "❌ She asked where was he → ✅ She asked where he was",
     ],
     summaryFa: "زمان، ضمایر و قیدهای مکان/زمان با توجه به شرایط باید تغییر کنند.",
+    isPinned: false,
     isCompleted: false,
     createdAt: new Date(),
   },
 ];
 
 export async function seedGrammarTopics() {
-  const count = await db.grammarTopics.count();
-  if (count >= 21) {
-    const first = await db.grammarTopics.orderBy("id").first();
-    if (first && "titleFa" in first && first.titleFa) return;
+  const existing = await db.grammarTopics.toArray();
+
+  if (existing.length === 0) {
+    await db.grammarTopics.bulkAdd(GRAMMAR_TOPICS_DATA);
+    return;
   }
-  await db.grammarTopics.clear();
-  await db.grammarTopics.bulkAdd(GRAMMAR_TOPICS_DATA);
+
+  // Upsert by title: refresh content (explanations, subtopics, etc.) for topics
+  // that already exist, without wiping the learner's progress (isCompleted,
+  // isPinned, notes). Add any brand-new topics that aren't seeded yet.
+  const existingByTitle = new Map(existing.map((t) => [t.title, t]));
+
+  for (const seedTopic of GRAMMAR_TOPICS_DATA) {
+    const current = existingByTitle.get(seedTopic.title);
+    if (!current) {
+      await db.grammarTopics.add(seedTopic);
+      continue;
+    }
+    const { isCompleted, completedAt, isPinned, notes, createdAt, ...content } = seedTopic;
+    await db.grammarTopics.update(current.id!, content);
+  }
 }
 
 export async function seedSentences() {

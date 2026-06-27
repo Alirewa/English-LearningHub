@@ -27,9 +27,18 @@ export const grammar = {
       examplesHeading: "Examples — مثال‌ها",
       commonMistakesHeading: "اشتباهات رایج — Common Mistakes",
       summaryHeading: "جمع‌بندی — Summary",
+      overviewTab: "Overview",
+      pin: "Pin",
+      unpin: "Unpin",
+    },
+    pinned: {
+      label: "Pinned",
+      sectionHeading: "Pinned Topics",
     },
     toasts: {
       lessonCompleted: (xp: number) => `+${xp} XP! Lesson completed.`,
+      pinned: "Pinned to the top",
+      unpinned: "Unpinned",
     },
   },
   fa: {
@@ -58,9 +67,18 @@ export const grammar = {
       examplesHeading: "Examples — مثال‌ها",
       commonMistakesHeading: "اشتباهات رایج — Common Mistakes",
       summaryHeading: "جمع‌بندی — Summary",
+      overviewTab: "کلی",
+      pin: "پین کردن",
+      unpin: "برداشتن پین",
+    },
+    pinned: {
+      label: "پین‌شده",
+      sectionHeading: "موضوعات پین‌شده",
     },
     toasts: {
       lessonCompleted: (xp: number) => `+${xp} XP! درس تموم شد.`,
+      pinned: "به بالای لیست پین شد",
+      unpinned: "پین برداشته شد",
     },
   },
 } satisfies Dict<{
@@ -89,8 +107,17 @@ export const grammar = {
     examplesHeading: string;
     commonMistakesHeading: string;
     summaryHeading: string;
+    overviewTab: string;
+    pin: string;
+    unpin: string;
+  };
+  pinned: {
+    label: string;
+    sectionHeading: string;
   };
   toasts: {
     lessonCompleted: (xp: number) => string;
+    pinned: string;
+    unpinned: string;
   };
 }>;
