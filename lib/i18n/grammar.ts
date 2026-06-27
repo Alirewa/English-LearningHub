@@ -27,9 +27,18 @@ export const grammar = {
       examplesHeading: "Examples — مثال‌ها",
       commonMistakesHeading: "اشتباهات رایج — Common Mistakes",
       summaryHeading: "جمع‌بندی — Summary",
-      overviewTab: "Overview",
       pin: "Pin",
       unpin: "Unpin",
+      close: "Close",
+      tabs: {
+        definition: "Definition",
+        formula: "Formula",
+        usages: "Usages",
+        rules: "Rules",
+        examples: "Examples",
+        mistakes: "Mistakes",
+        summary: "Summary",
+      },
     },
     pinned: {
       label: "Pinned",
@@ -67,9 +76,18 @@ export const grammar = {
       examplesHeading: "Examples — مثال‌ها",
       commonMistakesHeading: "اشتباهات رایج — Common Mistakes",
       summaryHeading: "جمع‌بندی — Summary",
-      overviewTab: "کلی",
       pin: "پین کردن",
       unpin: "برداشتن پین",
+      close: "بستن",
+      tabs: {
+        definition: "تعریف",
+        formula: "فرمول",
+        usages: "کاربردها",
+        rules: "قوانین",
+        examples: "مثال‌ها",
+        mistakes: "اشتباهات رایج",
+        summary: "جمع‌بندی",
+      },
     },
     pinned: {
       label: "پین‌شده",
@@ -107,9 +125,18 @@ export const grammar = {
     examplesHeading: string;
     commonMistakesHeading: string;
     summaryHeading: string;
-    overviewTab: string;
     pin: string;
     unpin: string;
+    close: string;
+    tabs: {
+      definition: string;
+      formula: string;
+      usages: string;
+      rules: string;
+      examples: string;
+      mistakes: string;
+      summary: string;
+    };
   };
   pinned: {
     label: string;

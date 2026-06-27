@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { db, XP_REWARDS, updateTodayStats, type GrammarTopic } from "@/lib/db";
 import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   CheckCircle2, ChevronRight, GraduationCap, BookOpen,
-  AlertTriangle, ChevronDown, Code2, Pin, PinOff,
+  AlertTriangle, Code2, Pin, PinOff, X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAppStore } from "@/lib/store";
@@ -34,143 +34,141 @@ const CATEGORY_COLORS: Record<string, string> = {
   "Pronouns":          "bg-violet-500/15 text-violet-400 border-violet-500/20",
 };
 
-function GrammarOverview({ topic, t }: { topic: GrammarTopic; t: typeof grammar.en }) {
-  const [showMistakes, setShowMistakes] = useState(false);
-
+function DefinitionPane({ topic, t }: { topic: GrammarTopic; t: typeof grammar.en }) {
   return (
     <div className="space-y-5">
-      {/* Category badge */}
       <span className={`inline-block text-xs px-2.5 py-1 rounded-full border font-medium ${CATEGORY_COLORS[topic.category] ?? "bg-muted text-muted-foreground border-border"}`}>
         {topic.category}
       </span>
-
-      {/* Bilingual definition */}
-      <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+      <div className="rounded-xl border border-border bg-card p-4 sm:p-5 space-y-3">
         <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
           {t.modal.definitionHeading}
         </h3>
-        <p className="text-sm text-foreground leading-relaxed">{topic.explanation}</p>
-        {"explanationFa" in topic && topic.explanationFa && (
+        <p className="text-sm text-foreground leading-relaxed break-words">{topic.explanation}</p>
+        {topic.explanationFa && (
           <div className="pt-3 border-t border-border/60">
-            <p className="fa text-sm text-muted-foreground">{topic.explanationFa}</p>
+            <p className="fa text-sm text-muted-foreground break-words">{topic.explanationFa}</p>
           </div>
         )}
       </div>
+    </div>
+  );
+}
 
-      {/* Formula */}
-      {"formula" in topic && topic.formula && (
-        <div className="rounded-xl border border-primary/25 bg-primary/5 p-4 space-y-2">
-          <div className="flex items-center gap-2">
-            <Code2 className="w-4 h-4 text-primary" />
-            <h3 className="text-[11px] font-semibold text-primary uppercase tracking-wider">
-              {t.modal.formulaHeading}
-            </h3>
+function FormulaPane({ topic, t }: { topic: GrammarTopic; t: typeof grammar.en }) {
+  return (
+    <div className="space-y-5">
+      <div className="rounded-xl border border-primary/25 bg-primary/5 p-4 space-y-2">
+        <div className="flex items-center gap-2">
+          <Code2 className="w-4 h-4 text-primary" />
+          <h3 className="text-[11px] font-semibold text-primary uppercase tracking-wider">
+            {t.modal.formulaHeading}
+          </h3>
+        </div>
+        <p className="text-sm font-mono text-foreground bg-background/50 rounded-lg px-3 py-2 whitespace-pre-line break-words">
+          {topic.formula}
+        </p>
+        {topic.formulaFa && (
+          <div className="pt-2 border-t border-primary/15">
+            <p className="fa text-sm text-muted-foreground whitespace-pre-line break-words">{topic.formulaFa}</p>
           </div>
-          <p className="text-sm font-mono text-foreground bg-background/50 rounded-lg px-3 py-2 whitespace-pre-line">
-            {topic.formula}
-          </p>
-          {"formulaFa" in topic && topic.formulaFa && (
-            <div className="pt-2 border-t border-primary/15">
-              <p className="fa text-sm text-muted-foreground whitespace-pre-line">{topic.formulaFa}</p>
-            </div>
-          )}
-        </div>
-      )}
+        )}
+      </div>
+    </div>
+  );
+}
 
-      {/* Usages — Persian */}
-      {"usagesFa" in topic && topic.usagesFa && (
-        <div className="rounded-xl border border-border bg-card p-4">
-          <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            {t.modal.usagesHeading}
-          </h3>
-          <p className="fa text-sm text-foreground">{topic.usagesFa}</p>
-        </div>
-      )}
+function UsagesPane({ topic, t }: { topic: GrammarTopic; t: typeof grammar.en }) {
+  return (
+    <div className="space-y-5">
+      <div className="rounded-xl border border-border bg-card p-4">
+        <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+          {t.modal.usagesHeading}
+        </h3>
+        <p className="fa text-sm text-foreground break-words">{topic.usagesFa}</p>
+      </div>
+    </div>
+  );
+}
 
-      {/* Rules */}
-      {topic.rules && topic.rules.length > 0 && (
-        <div className="rounded-xl border border-border bg-card p-5">
-          <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-            {t.modal.rulesHeading}
-          </h3>
-          <ul className="space-y-3">
-            {topic.rules.map((rule, i) => (
-              <li key={i} className="flex items-start gap-3">
-                <span className="w-5 h-5 rounded-full bg-primary/20 text-primary text-[11px] flex items-center justify-center shrink-0 mt-0.5 font-semibold">
-                  {i + 1}
-                </span>
-                <span className="text-sm text-foreground leading-relaxed">{rule}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+function RulesPane({ topic, t }: { topic: GrammarTopic; t: typeof grammar.en }) {
+  return (
+    <div className="space-y-5">
+      <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
+        <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+          {t.modal.rulesHeading}
+        </h3>
+        <ul className="space-y-3">
+          {topic.rules.map((rule, i) => (
+            <li key={i} className="flex items-start gap-3">
+              <span className="w-5 h-5 rounded-full bg-primary/20 text-primary text-[11px] flex items-center justify-center shrink-0 mt-0.5 font-semibold">
+                {i + 1}
+              </span>
+              <span className="text-sm text-foreground leading-relaxed break-words">{rule}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
 
-      {/* Examples */}
-      {topic.examples && topic.examples.length > 0 && (
-        <div className="rounded-xl border border-border bg-card p-5">
-          <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-4">
-            {t.modal.examplesHeading}
-          </h3>
-          <div className="space-y-2.5">
-            {topic.examples.map((ex, i) => (
-              <div key={i} className="flex items-start gap-3 py-2.5 px-3 rounded-lg bg-muted/40">
+function ExamplesPane({ examples, examplesFa, t }: { examples: string[]; examplesFa?: string[]; t: typeof grammar.en }) {
+  return (
+    <div className="space-y-5">
+      <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
+        <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-4">
+          {t.modal.examplesHeading}
+        </h3>
+        <div className="space-y-2.5">
+          {examples.map((ex, i) => (
+            <div key={i} className="flex flex-col gap-1 py-2.5 px-3 rounded-lg bg-muted/40">
+              <div className="flex items-start gap-3">
                 <BookOpen className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
-                <p className="text-sm text-foreground italic">&ldquo;{ex}&rdquo;</p>
+                <p className="text-sm text-foreground italic break-words">&ldquo;{ex}&rdquo;</p>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Common Mistakes */}
-      {topic.commonMistakes && topic.commonMistakes.length > 0 && (
-        <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4">
-          <button
-            className="flex items-center justify-between w-full text-left"
-            onClick={() => setShowMistakes(!showMistakes)}
-          >
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-destructive" />
-              <h3 className="text-sm font-semibold text-destructive">
-                {t.modal.commonMistakesHeading}
-              </h3>
+              {examplesFa?.[i] && (
+                <p className="fa text-xs text-muted-foreground break-words">{examplesFa[i]}</p>
+              )}
             </div>
-            <ChevronDown className={`w-4 h-4 text-destructive transition-transform ${showMistakes ? "rotate-180" : ""}`} />
-          </button>
-          <AnimatePresence>
-            {showMistakes && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="overflow-hidden"
-              >
-                <div className="pt-3 space-y-2">
-                  {topic.commonMistakes.map((m, i) => (
-                    <p key={i} className="text-sm text-destructive/90 font-mono bg-destructive/5 rounded px-2 py-1">
-                      {m}
-                    </p>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          ))}
         </div>
-      )}
+      </div>
+    </div>
+  );
+}
 
-      {/* Persian Summary */}
-      {"summaryFa" in topic && topic.summaryFa && (
-        <div className="rounded-xl border border-border bg-muted/30 p-4">
-          <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            {t.modal.summaryHeading}
+function MistakesPane({ topic, t }: { topic: GrammarTopic; t: typeof grammar.en }) {
+  return (
+    <div className="space-y-5">
+      <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <AlertTriangle className="w-4 h-4 text-destructive" />
+          <h3 className="text-sm font-semibold text-destructive">
+            {t.modal.commonMistakesHeading}
           </h3>
-          <p className="fa text-sm text-foreground leading-loose whitespace-pre-line">{topic.summaryFa}</p>
         </div>
-      )}
+        <div className="space-y-2">
+          {topic.commonMistakes.map((m, i) => (
+            <p key={i} className="text-sm text-destructive/90 font-mono bg-destructive/5 rounded px-2 py-1 break-words">
+              {m}
+            </p>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
-      {/* Bottom padding for mobile */}
-      <div className="h-2" />
+function SummaryPane({ topic, t }: { topic: GrammarTopic; t: typeof grammar.en }) {
+  return (
+    <div className="space-y-5">
+      <div className="rounded-xl border border-border bg-muted/30 p-4">
+        <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+          {t.modal.summaryHeading}
+        </h3>
+        <p className="fa text-sm text-foreground leading-loose whitespace-pre-line break-words">{topic.summaryFa}</p>
+      </div>
     </div>
   );
 }
@@ -179,8 +177,8 @@ function SubtopicView({ sub }: { sub: NonNullable<GrammarTopic["subtopics"]>[num
   return (
     <div className="space-y-5">
       <div className="rounded-xl border border-primary/25 bg-primary/5 p-4 space-y-1">
-        <p className="text-sm font-semibold text-foreground">{sub.tagline}</p>
-        <p className="fa text-xs text-muted-foreground">{sub.taglineFa}</p>
+        <p className="text-sm font-semibold text-foreground break-words">{sub.tagline}</p>
+        <p className="fa text-xs text-muted-foreground break-words">{sub.taglineFa}</p>
       </div>
 
       <div className="rounded-xl border border-border bg-card p-4 space-y-2">
@@ -188,25 +186,25 @@ function SubtopicView({ sub }: { sub: NonNullable<GrammarTopic["subtopics"]>[num
           <Code2 className="w-4 h-4 text-primary" />
           <h3 className="text-[11px] font-semibold text-primary uppercase tracking-wider">Formula</h3>
         </div>
-        <p className="text-sm font-mono text-foreground bg-background/50 rounded-lg px-3 py-2">{sub.formula}</p>
+        <p className="text-sm font-mono text-foreground bg-background/50 rounded-lg px-3 py-2 break-words">{sub.formula}</p>
       </div>
 
       <div className="rounded-xl border border-border bg-card p-4">
-        <p className="fa text-sm text-foreground leading-relaxed">{sub.explanationFa}</p>
+        <p className="fa text-sm text-foreground leading-relaxed break-words">{sub.explanationFa}</p>
       </div>
 
       {sub.examples.length > 0 && (
-        <div className="rounded-xl border border-border bg-card p-5">
+        <div className="rounded-xl border border-border bg-card p-4 sm:p-5">
           <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-4">Examples</h3>
           <div className="space-y-2.5">
             {sub.examples.map((ex, i) => (
               <div key={i} className="flex flex-col gap-1 py-2.5 px-3 rounded-lg bg-muted/40">
                 <div className="flex items-start gap-3">
                   <BookOpen className="w-3.5 h-3.5 text-primary mt-0.5 shrink-0" />
-                  <p className="text-sm text-foreground italic">&ldquo;{ex}&rdquo;</p>
+                  <p className="text-sm text-foreground italic break-words">&ldquo;{ex}&rdquo;</p>
                 </div>
                 {sub.examplesFa?.[i] && (
-                  <p className="fa text-xs text-muted-foreground pl-6.5">{sub.examplesFa[i]}</p>
+                  <p className="fa text-xs text-muted-foreground break-words">{sub.examplesFa[i]}</p>
                 )}
               </div>
             ))}
@@ -216,7 +214,7 @@ function SubtopicView({ sub }: { sub: NonNullable<GrammarTopic["subtopics"]>[num
 
       {sub.tipFa && (
         <div className="rounded-xl border border-border bg-muted/30 p-4">
-          <p className="fa text-sm text-foreground leading-loose">💡 {sub.tipFa}</p>
+          <p className="fa text-sm text-foreground leading-loose break-words">💡 {sub.tipFa}</p>
         </div>
       )}
 
@@ -237,26 +235,53 @@ function GrammarModal({ topic, open, onClose, onComplete, onTogglePin }: {
 
   if (!topic) return null;
 
-  const hasSubtopics = !!topic.subtopics && topic.subtopics.length > 0;
+  type TabDef = { id: string; label: string; content: ReactNode };
+  const tabs: TabDef[] = [
+    { id: "definition", label: t.modal.tabs.definition, content: <DefinitionPane topic={topic} t={t} /> },
+  ];
+  if (topic.formula) {
+    tabs.push({ id: "formula", label: t.modal.tabs.formula, content: <FormulaPane topic={topic} t={t} /> });
+  }
+  if (topic.usagesFa) {
+    tabs.push({ id: "usages", label: t.modal.tabs.usages, content: <UsagesPane topic={topic} t={t} /> });
+  }
+  if (topic.rules?.length) {
+    tabs.push({ id: "rules", label: t.modal.tabs.rules, content: <RulesPane topic={topic} t={t} /> });
+  }
+  if (topic.examples?.length) {
+    tabs.push({ id: "examples", label: t.modal.tabs.examples, content: <ExamplesPane examples={topic.examples} t={t} /> });
+  }
+  if (topic.commonMistakes?.length) {
+    tabs.push({ id: "mistakes", label: t.modal.tabs.mistakes, content: <MistakesPane topic={topic} t={t} /> });
+  }
+  if (topic.summaryFa) {
+    tabs.push({ id: "summary", label: t.modal.tabs.summary, content: <SummaryPane topic={topic} t={t} /> });
+  }
+  topic.subtopics?.forEach((sub) => {
+    tabs.push({ id: sub.id, label: language === "fa" ? sub.titleFa : sub.title, content: <SubtopicView sub={sub} /> });
+  });
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0">
+      <DialogContent
+        showCloseButton={false}
+        className="w-[calc(100%-1.5rem)] sm:w-full sm:max-w-2xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto p-0 gap-0"
+      >
         {/* Sticky header inside modal */}
-        <DialogHeader className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border px-6 py-4">
-          <div className="flex items-start justify-between gap-3">
+        <DialogHeader className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border px-4 sm:px-6 py-3 sm:py-4">
+          <div className="flex items-start justify-between gap-2 sm:gap-3">
             <div className="min-w-0">
-              <DialogTitle className="text-base font-semibold text-foreground leading-tight">
+              <DialogTitle className="text-sm sm:text-base font-semibold text-foreground leading-tight break-words">
                 {topic.title}
               </DialogTitle>
-              {"titleFa" in topic && topic.titleFa && (
-                <p className="fa text-sm text-muted-foreground mt-0.5">{topic.titleFa}</p>
+              {topic.titleFa && (
+                <p className="fa text-xs sm:text-sm text-muted-foreground mt-0.5 break-words">{topic.titleFa}</p>
               )}
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
               <Button
                 onClick={() => onTogglePin(topic)}
-                size="icon"
+                size="icon-sm"
                 variant="ghost"
                 className={topic.isPinned ? "text-primary" : "text-muted-foreground"}
                 title={topic.isPinned ? t.modal.unpin : t.modal.pin}
@@ -265,7 +290,7 @@ function GrammarModal({ topic, open, onClose, onComplete, onTogglePin }: {
                 {topic.isPinned ? <Pin className="w-4 h-4 fill-current" /> : <Pin className="w-4 h-4" />}
               </Button>
               {!topic.isCompleted && (
-                <Button onClick={() => onComplete(topic)} size="sm" className="gap-1.5">
+                <Button onClick={() => onComplete(topic)} size="sm" className="gap-1.5 px-2.5 sm:px-3">
                   <CheckCircle2 className="w-4 h-4" />
                   <span className="hidden sm:inline">{t.modal.markDone}</span>
                   <span className="sm:hidden">✓</span>
@@ -274,36 +299,38 @@ function GrammarModal({ topic, open, onClose, onComplete, onTogglePin }: {
               {topic.isCompleted && (
                 <span className="flex items-center gap-1.5 text-xs text-green-400 font-medium">
                   <CheckCircle2 className="w-4 h-4 fill-green-400" />
-                  {t.modal.completed}
+                  <span className="hidden sm:inline">{t.modal.completed}</span>
                 </span>
               )}
+              <Button
+                onClick={onClose}
+                size="icon-sm"
+                variant="ghost"
+                className="text-muted-foreground"
+                title={t.modal.close}
+                aria-label={t.modal.close}
+              >
+                <X className="w-4 h-4" />
+              </Button>
             </div>
           </div>
         </DialogHeader>
 
-        <div className="p-6">
-          {hasSubtopics ? (
-            <Tabs defaultValue="overview">
-              <TabsList className="mb-5 flex flex-wrap h-auto gap-1 bg-muted p-1">
-                <TabsTrigger value="overview" className="text-xs">{t.modal.overviewTab}</TabsTrigger>
-                {topic.subtopics!.map((sub) => (
-                  <TabsTrigger key={sub.id} value={sub.id} className="text-xs">
-                    {sub.title}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              <TabsContent value="overview" className="max-h-[55vh] overflow-y-auto pr-1">
-                <GrammarOverview topic={topic} t={t} />
-              </TabsContent>
-              {topic.subtopics!.map((sub) => (
-                <TabsContent key={sub.id} value={sub.id} className="max-h-[55vh] overflow-y-auto pr-1">
-                  <SubtopicView sub={sub} />
-                </TabsContent>
+        <div className="p-3 sm:p-6">
+          <Tabs defaultValue="definition">
+            <TabsList className="mb-4 sm:mb-5 flex flex-wrap h-auto gap-1 bg-muted p-1">
+              {tabs.map((tab) => (
+                <TabsTrigger key={tab.id} value={tab.id} className="text-[11px] sm:text-xs px-2 sm:px-3">
+                  {tab.label}
+                </TabsTrigger>
               ))}
-            </Tabs>
-          ) : (
-            <GrammarOverview topic={topic} t={t} />
-          )}
+            </TabsList>
+            {tabs.map((tab) => (
+              <TabsContent key={tab.id} value={tab.id} className="max-h-[60vh] sm:max-h-[55vh] overflow-y-auto pr-1">
+                {tab.content}
+              </TabsContent>
+            ))}
+          </Tabs>
         </div>
       </DialogContent>
     </Dialog>
