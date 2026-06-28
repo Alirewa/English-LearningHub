@@ -38,7 +38,9 @@ export const grammar = {
         examples: "Examples",
         mistakes: "Mistakes",
         summary: "Summary",
+        types: "Types",
       },
+      selectType: "Select a type",
     },
     pinned: {
       label: "Pinned",
@@ -87,7 +89,9 @@ export const grammar = {
         examples: "مثال‌ها",
         mistakes: "اشتباهات رایج",
         summary: "جمع‌بندی",
+        types: "انواع",
       },
+      selectType: "یک نوع رو انتخاب کن",
     },
     pinned: {
       label: "پین‌شده",
@@ -136,7 +140,9 @@ export const grammar = {
       examples: string;
       mistakes: string;
       summary: string;
+      types: string;
     };
+    selectType: string;
   };
   pinned: {
     label: string;

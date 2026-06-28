@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { motion } from "framer-motion";
 import { db, XP_REWARDS, updateTodayStats, type GrammarTopic } from "@/lib/db";
@@ -10,6 +10,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   CheckCircle2, ChevronRight, GraduationCap, BookOpen,
   AlertTriangle, Code2, Pin, PinOff, X,
@@ -223,6 +224,38 @@ function SubtopicView({ sub }: { sub: NonNullable<GrammarTopic["subtopics"]>[num
   );
 }
 
+function TypesPane({ subtopics, selectedId, onSelect, language, t }: {
+  subtopics: NonNullable<GrammarTopic["subtopics"]>;
+  selectedId: string;
+  onSelect: (id: string) => void;
+  language: "en" | "fa";
+  t: typeof grammar.en;
+}) {
+  const selected = subtopics.find((s) => s.id === selectedId) ?? subtopics[0];
+  return (
+    <div className="space-y-4">
+      <Select value={selected.id} onValueChange={(v) => v && onSelect(v)}>
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder={t.modal.selectType}>
+            {(value: string) => {
+              const s = subtopics.find((s) => s.id === value);
+              return s ? (language === "fa" ? s.titleFa : s.title) : value;
+            }}
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          {subtopics.map((s) => (
+            <SelectItem key={s.id} value={s.id}>
+              {language === "fa" ? s.titleFa : s.title}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <SubtopicView sub={selected} />
+    </div>
+  );
+}
+
 function GrammarModal({ topic, open, onClose, onComplete, onTogglePin }: {
   topic: GrammarTopic | null;
   open: boolean;
@@ -232,6 +265,11 @@ function GrammarModal({ topic, open, onClose, onComplete, onTogglePin }: {
 }) {
   const language = useAppStore((s) => s.language);
   const t = grammar[language];
+  const [selectedSubtopicId, setSelectedSubtopicId] = useState("");
+
+  useEffect(() => {
+    setSelectedSubtopicId(topic?.subtopics?.[0]?.id ?? "");
+  }, [topic?.id]);
 
   if (!topic) return null;
 
@@ -257,9 +295,21 @@ function GrammarModal({ topic, open, onClose, onComplete, onTogglePin }: {
   if (topic.summaryFa) {
     tabs.push({ id: "summary", label: t.modal.tabs.summary, content: <SummaryPane topic={topic} t={t} /> });
   }
-  topic.subtopics?.forEach((sub) => {
-    tabs.push({ id: sub.id, label: language === "fa" ? sub.titleFa : sub.title, content: <SubtopicView sub={sub} /> });
-  });
+  if (topic.subtopics?.length) {
+    tabs.push({
+      id: "types",
+      label: t.modal.tabs.types,
+      content: (
+        <TypesPane
+          subtopics={topic.subtopics}
+          selectedId={selectedSubtopicId}
+          onSelect={setSelectedSubtopicId}
+          language={language}
+          t={t}
+        />
+      ),
+    });
+  }
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
